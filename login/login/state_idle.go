@@ -15,7 +15,7 @@ func (s *Idle) Handle(event int, param interface{}) string {
 	switch event {
 	case LOGIN:
 		s.owner.Login(param.(*c2s.Login))
-		return "Logging"
+		return SLOGGING
 	case TIMER:
 		s.idle++
 		if s.idle > 60 {

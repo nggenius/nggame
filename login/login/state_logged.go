@@ -19,7 +19,7 @@ func (l *Logged) Handle(event int, param interface{}) string {
 			l.idle = 0 // 1 分钟后退出
 			return ""
 		}
-		return "Idle" //重新登录
+		return SIDLE //重新登录
 	case TIMER:
 		l.idle++
 		if l.idle > 60 {

@@ -17,7 +17,7 @@ func (l *Logging) Handle(event int, param interface{}) string {
 	case LOGIN_RESULT:
 		args := param.([2]interface{})
 		if l.owner.LoginResult(args[0].(int32), args[1].(*inner.Account)) {
-			return "Logged"
+			return SLOGGED
 		}
 	case TIMER:
 		l.idle++
