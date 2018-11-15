@@ -1,0 +1,81 @@
+[I] 2018/11/15 11:28:32 tcp_server.go:15: TCP: listening on 127.0.0.1:12500
+[I] 2018/11/15 11:28:32 start_windows.go:27: master app start login,1
+[I] 2018/11/15 11:28:32 start_windows.go:27: master app start nest,2
+[I] 2018/11/15 11:28:32 start_windows.go:27: master app start region,3
+[I] 2018/11/15 11:28:32 start_windows.go:27: master app start store,4
+[I] 2018/11/15 11:28:32 start_windows.go:27: master app start world,5
+[I] 2018/11/15 11:28:32 ngadmin.go:67: admin is ready, Debug Mode:false
+[I] 2018/11/15 11:28:32 tcp.go:20: TCP: new client(127.0.0.1:63008)
+[I] 2018/11/15 11:28:32 service_db.go:90: add Service{Id:1,Name:login_1,Type:login,Status:1,Addr:127.0.0.1,Port:63007,Outer Addr:192.168.1.12,Outer Port:4000,Load:0}
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(1), id:100, size:176
+[I] 2018/11/15 11:28:32 tcp.go:20: TCP: new client(127.0.0.1:63011)
+[I] 2018/11/15 11:28:32 service_db.go:90: add Service{Id:5,Name:world_1,Type:world,Status:1,Addr:127.0.0.1,Port:63010,Outer Addr:,Outer Port:0,Load:0}
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(1), id:100, size:162
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(5), id:100, size:298
+[I] 2018/11/15 11:28:32 tcp.go:20: TCP: new client(127.0.0.1:63013)
+[I] 2018/11/15 11:28:32 service_db.go:90: add Service{Id:3,Name:region_1,Type:region,Status:1,Addr:127.0.0.1,Port:63012,Outer Addr:,Outer Port:0,Load:0}
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(1), id:100, size:164
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(5), id:100, size:164
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(3), id:100, size:422
+[I] 2018/11/15 11:28:32 tcp.go:20: TCP: new client(127.0.0.1:63019)
+[I] 2018/11/15 11:28:32 service_db.go:90: add Service{Id:2,Name:nest_1,Type:nest,Status:1,Addr:127.0.0.1,Port:63015,Outer Addr:192.168.1.12,Outer Port:63018,Load:0}
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(1), id:100, size:176
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(5), id:100, size:176
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(2), id:100, size:558
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(3), id:100, size:176
+[I] 2018/11/15 11:28:32 tcp.go:20: TCP: new client(127.0.0.1:63021)
+[I] 2018/11/15 11:28:32 service_db.go:90: add Service{Id:4,Name:db_1,Type:store,Status:1,Addr:127.0.0.1,Port:63020,Outer Addr:,Outer Port:0,Load:0}
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(3), id:100, size:159
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(3), id:103, size:4
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(4), id:100, size:677
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(2), id:100, size:159
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(2), id:103, size:4
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(4), id:103, size:4
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(1), id:100, size:159
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(5), id:100, size:159
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(1), id:103, size:4
+[I] 2018/11/15 11:28:32 admin_protocol.go:189: send message to service(5), id:103, size:4
+[I] 2018/11/15 11:28:42 admin_protocol.go:189: send message to service(4), id:101, size:21
+[I] 2018/11/15 11:28:42 admin_protocol.go:189: send message to service(5), id:101, size:21
+[I] 2018/11/15 11:28:42 admin_protocol.go:189: send message to service(2), id:101, size:21
+[I] 2018/11/15 11:28:42 admin_protocol.go:189: send message to service(1), id:101, size:21
+[I] 2018/11/15 11:28:42 admin_protocol.go:189: send message to service(3), id:101, size:21
+[I] 2018/11/15 11:29:02 admin_protocol.go:189: send message to service(4), id:101, size:21
+[I] 2018/11/15 11:29:02 admin_protocol.go:189: send message to service(2), id:101, size:21
+[I] 2018/11/15 11:29:02 admin_protocol.go:189: send message to service(1), id:101, size:21
+[I] 2018/11/15 11:29:02 admin_protocol.go:189: send message to service(5), id:101, size:21
+[I] 2018/11/15 11:29:02 admin_protocol.go:189: send message to service(3), id:101, size:21
+[I] 2018/11/15 11:29:06 admin_protocol.go:189: send message to service(1), id:104, size:4
+[I] 2018/11/15 11:29:06 service_db.go:155: remove Service{Id:4,Name:db_1,Type:store,Status:1,Addr:127.0.0.1,Port:63020,Outer Addr:,Outer Port:0,Load:0}
+[E] 2018/11/15 11:29:06 admin_protocol.go:206: client quit loop 1
+[E] 2018/11/15 11:29:06 service_db.go:177: sync service failed, send message failed, reason: client is quit
+[E] 2018/11/15 11:29:06 admin_protocol.go:189: send message to service(4), id:104, size:4
+[E] 2018/11/15 11:29:06 admin_protocol.go:189: send message to service(2), id:104, size:4
+[E] 2018/11/15 11:29:06 admin_protocol.go:189: send message to service(3), id:104, size:4
+[E] 2018/11/15 11:29:06 admin_protocol.go:189: send message to service(5), id:104, size:4
+[E] 2018/11/15 11:29:06 service_db.go:155: remove Service{Id:5,Name:world_1,Type:world,Status:1,Addr:127.0.0.1,Port:63010,Outer Addr:,Outer Port:0,Load:0}
+[E] 2018/11/15 11:29:06 admin_protocol.go:184: flush message error
+[E] 2018/11/15 11:29:06 admin_protocol.go:46: read err:read tcp 127.0.0.1:12500->127.0.0.1:63021: wsarecv: An established connection was aborted by the software in your host machine.
+[E] 2018/11/15 11:29:06 admin_protocol.go:189: send message to service(2), id:100, size:137
+[I] 2018/11/15 11:29:06 admin_protocol.go:206: client quit loop 2
+[I] 2018/11/15 11:29:06 service_db.go:177: sync service failed, send message failed, reason: client is quit
+[E] 2018/11/15 11:29:06 admin_protocol.go:189: send message to service(3), id:100, size:137
+[E] 2018/11/15 11:29:06 admin_protocol.go:206: client quit loop 4
+[E] 2018/11/15 11:29:06 service_db.go:177: sync service failed, send message failed, reason: client is quit
+[I] 2018/11/15 11:29:06 admin_protocol.go:184: flush message error
+[I] 2018/11/15 11:29:06 service_db.go:155: remove Service{Id:3,Name:region_1,Type:region,Status:1,Addr:127.0.0.1,Port:63012,Outer Addr:,Outer Port:0,Load:0}
+[E] 2018/11/15 11:29:06 service_db.go:177: sync service failed, send message failed, reason: client is quit
+[E] 2018/11/15 11:29:06 service_db.go:177: sync service failed, send message failed, reason: client is quit
+[E] 2018/11/15 11:29:06 admin_protocol.go:46: read err:read tcp 127.0.0.1:12500->127.0.0.1:63011: wsarecv: An established connection was aborted by the software in your host machine.
+[E] 2018/11/15 11:29:06 admin_protocol.go:206: client quit loop 5
+[E] 2018/11/15 11:29:06 service_db.go:155: remove Service{Id:1,Name:login_1,Type:login,Status:1,Addr:127.0.0.1,Port:63007,Outer Addr:192.168.1.12,Outer Port:4000,Load:0}
+[E] 2018/11/15 11:29:06 service_db.go:177: sync service failed, send message failed, reason: client is quit
+[I] 2018/11/15 11:29:06 tcp.go:46: TCP: client(127.0.0.1:63008) offline
+[I] 2018/11/15 11:29:06 service_db.go:155: remove Service{Id:2,Name:nest_1,Type:nest,Status:1,Addr:127.0.0.1,Port:63015,Outer Addr:192.168.1.12,Outer Port:63018,Load:0}
+[I] 2018/11/15 11:29:06 tcp.go:46: TCP: client(127.0.0.1:63019) offline
+[I] 2018/11/15 11:29:06 admin_protocol.go:46: read err:read tcp 127.0.0.1:12500->127.0.0.1:63013: wsarecv: An established connection was aborted by the software in your host machine.
+[I] 2018/11/15 11:29:06 tcp.go:46: TCP: client(127.0.0.1:63013) offline
+[I] 2018/11/15 11:29:06 tcp.go:46: TCP: client(127.0.0.1:63021) offline
+[I] 2018/11/15 11:29:06 tcp.go:46: TCP: client(127.0.0.1:63011) offline
+[I] 2018/11/15 11:29:06 admin_protocol.go:206: client quit loop 3
+[I] 2018/11/15 11:29:07 tcp_server.go:32: TCP: closing 127.0.0.1:12500

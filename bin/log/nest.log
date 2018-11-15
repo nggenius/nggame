@@ -1,0 +1,61 @@
+[I] 2018/11/15 11:28:32 core.go:136: module 'Store' init ok
+[I] 2018/11/15 11:28:32 core.go:136: module 'Session' init ok
+[I] 2018/11/15 11:28:32 core.go:136: module 'Timer' init ok
+[I] 2018/11/15 11:28:32 core.go:136: module 'Object' init ok
+[I] 2018/11/15 11:28:32 core.go:156: module 'Object' start
+[I] 2018/11/15 11:28:32 core.go:156: module 'Store' start
+[I] 2018/11/15 11:28:32 core.go:156: module 'Session' start
+[I] 2018/11/15 11:28:32 core.go:156: module 'Timer' start
+[I] 2018/11/15 11:28:32 core.go:164: service nest_1 start, goroutine id 49
+[I] 2018/11/15 11:28:32 harbor.go:103: service listen:127.0.0.1:63015
+[I] 2018/11/15 11:28:32 rpc.go:42: rpc start at:127.0.0.1:63015
+[I] 2018/11/15 11:28:32 harbor.go:121: expose listen:[::]:63018
+[I] 2018/11/15 11:28:32 tcp_server.go:15: TCP: listening on [::]:63018
+[D] 2018/11/15 11:28:32 harbor_protocol.go:231: send message, 1 &{1 {2 nest_1 nest 1 127.0.0.1 63015 192.168.1.12 63018 0}}
+[D] 2018/11/15 11:28:32 harbor_protocol.go:231: send message, 3 {[all]}
+[I] 2018/11/15 11:28:32 service_dns.go:118: add Service{Id:5,Name:world_1,Type:world,Status:1,Addr:127.0.0.1,Port:63010,Outer addr:,Outer Port:0,Load:0}
+[I] 2018/11/15 11:28:32 service_dns.go:118: add Service{Id:3,Name:region_1,Type:region,Status:1,Addr:127.0.0.1,Port:63012,Outer addr:,Outer Port:0,Load:0}
+[I] 2018/11/15 11:28:32 service_dns.go:118: add Service{Id:2,Name:nest_1,Type:nest,Status:1,Addr:127.0.0.1,Port:63015,Outer addr:192.168.1.12,Outer Port:63018,Load:0}
+[I] 2018/11/15 11:28:32 service_dns.go:118: add Service{Id:1,Name:login_1,Type:login,Status:1,Addr:127.0.0.1,Port:63007,Outer addr:192.168.1.12,Outer Port:4000,Load:0}
+[I] 2018/11/15 11:28:32 core_loop.go:74: service ready, id:5
+[I] 2018/11/15 11:28:32 core_loop.go:74: service ready, id:3
+[I] 2018/11/15 11:28:32 core_loop.go:74: service ready, id:2
+[I] 2018/11/15 11:28:32 core_loop.go:74: service ready, id:1
+[I] 2018/11/15 11:28:32 service_dns.go:118: add Service{Id:4,Name:db_1,Type:store,Status:1,Addr:127.0.0.1,Port:63020,Outer addr:,Outer Port:0,Load:0}
+[I] 2018/11/15 11:28:32 core_loop.go:74: service ready, id:4
+[I] 2018/11/15 11:28:32 core_loop.go:76: must service ready
+[I] 2018/11/15 11:28:38 rpc.go:62: new rpc client,127.0.0.1:63031
+[I] 2018/11/15 11:28:38 server.go:286: start new rpc server{serial:0}
+[D] 2018/11/15 11:28:38 core_loop.go:30: mailbox://1000000000000 call S2SAccount.Logged
+[D] 2018/11/15 11:28:38 server.go:336: response call, seq:1
+[I] 2018/11/15 11:28:38 client_db.go:55: add client{session:1,addr:192.168.1.12,port:63032}
+[I] 2018/11/15 11:28:38 server.go:286: start new rpc server{serial:1}
+[I] 2018/11/15 11:28:38 module.go:109: new session, 1
+[D] 2018/11/15 11:28:38 core_loop.go:30: mailbox://2800000000001 call C2SC2SHelper.Call
+[D] 2018/11/15 11:28:38 c2s_rpc.go:46: client call ./Self.Login
+[D] 2018/11/15 11:28:38 core_loop.go:30: mailbox://2800000000001 call C2SSelf.Login
+[I] 2018/11/15 11:28:38 service_conn.go:93: mailbox://2000000000000 call mailbox://4000000000000/Store.Find
+[D] 2018/11/15 11:28:38 client.go:195: request async call:S2SStore.Find, seq:1
+[D] 2018/11/15 11:28:38 client.go:226: response replyed, seq:1
+[D] 2018/11/15 11:28:38 session.go:92: role info[]
+[D] 2018/11/15 11:28:38 s2c_rpc.go:57: call client{session:1,addr:192.168.1.12,port:63032} /Account.Roles
+[I] 2018/11/15 11:28:38 client.go:55: send message to client{session:1,addr:192.168.1.12,port:63032} size: 81
+[D] 2018/11/15 11:28:42 harbor_protocol.go:231: send message, 5 &{2 1}
+[D] 2018/11/15 11:28:47 core_loop.go:30: mailbox://2800000000001 call C2SC2SHelper.Call
+[D] 2018/11/15 11:28:47 c2s_rpc.go:46: client call ./Self.CreateRole
+[D] 2018/11/15 11:28:47 core_loop.go:30: mailbox://2800000000001 call C2SSelf.CreateRole
+[I] 2018/11/15 11:28:47 service_conn.go:93: mailbox://2000000000000 call mailbox://4000000000000/Store.CreateRole
+[D] 2018/11/15 11:28:47 client.go:195: request async call:S2SStore.CreateRole, seq:2
+[D] 2018/11/15 11:28:47 client.go:226: response replyed, seq:2
+[I] 2018/11/15 11:28:47 service_conn.go:93: mailbox://2000000000000 call mailbox://4000000000000/Store.Find
+[D] 2018/11/15 11:28:47 client.go:195: request async call:S2SStore.Find, seq:3
+[D] 2018/11/15 11:28:47 client.go:226: response replyed, seq:3
+[D] 2018/11/15 11:28:47 session.go:92: role info[0xc042e5a180]
+[D] 2018/11/15 11:28:47 s2c_rpc.go:57: call client{session:1,addr:192.168.1.12,port:63032} /Account.Roles
+[I] 2018/11/15 11:28:47 client.go:55: send message to client{session:1,addr:192.168.1.12,port:63032} size: 149
+[I] 2018/11/15 11:28:55 server.go:295: service client closed
+[I] 2018/11/15 11:28:55 server.go:314: rpc server{serial:1} closed
+[I] 2018/11/15 11:28:55 client_db.go:86: remove client{session:1,addr:192.168.1.12,port:63032}
+[I] 2018/11/15 11:28:55 module.go:97: remove session, 1
+[I] 2018/11/15 11:28:55 client.go:79: client quit io loop
+[D] 2018/11/15 11:29:02 harbor_protocol.go:231: send message, 5 &{2 0}
