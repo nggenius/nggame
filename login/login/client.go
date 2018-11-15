@@ -9,95 +9,6 @@ import (
 	"github.com/nggenius/nggame/proto/s2c"
 )
 
-const (
-	NONE         = iota
-	TIMER        // 1秒钟的定时器
-	BREAK        // 客户端断开连接
-	LOGIN        // 客户端登录
-	LOGIN_RESULT // 登录结果
-	NEST_RESULT  // nest 登录结果
-)
-
-type Idle struct {
-	fsm.Default
-	owner *Session
-	idle  int32
-}
-
-func (s *Idle) Handle(event int, param interface{}) string {
-	switch event {
-	case LOGIN:
-		s.owner.Login(param.(*c2s.Login))
-		return "Logging"
-	case TIMER:
-		s.idle++
-		if s.idle > 60 {
-			s.owner.Break()
-			return ""
-		}
-	case BREAK:
-		s.owner.DestroySelf()
-		return fsm.STOP
-	}
-	return ""
-}
-
-type Logging struct {
-	fsm.Default
-	owner *Session
-	idle  int32
-}
-
-func (l *Logging) Handle(event int, param interface{}) string {
-	switch event {
-	case LOGIN_RESULT:
-		args := param.([2]interface{})
-		if l.owner.LoginResult(args[0].(int32), args[1].(*inner.Account)) {
-			return "Logged"
-		}
-	case TIMER:
-		l.idle++
-		if l.idle > 60 {
-			l.owner.Error(share.S2C_ERR_SERVICE_INVALID)
-			l.owner.Break()
-			return ""
-		}
-	case BREAK:
-		l.owner.DestroySelf()
-		return fsm.STOP
-	}
-	return ""
-}
-
-type Logged struct {
-	fsm.Default
-	owner *Session
-	idle  int32
-}
-
-func (l *Logged) Handle(event int, param interface{}) string {
-	switch event {
-	case NEST_RESULT:
-		args := param.([2]interface{})
-		if l.owner.NestResult(args[0].(int32), args[1].(string)) {
-			l.idle = 0 // 1 分钟后退出
-			return ""
-		}
-		return "Start" //重新登录
-	case TIMER:
-		l.idle++
-		if l.idle > 60 {
-			l.owner.Error(share.S2C_ERR_SERVICE_INVALID)
-			l.owner.Break()
-			return ""
-		}
-	case BREAK:
-		l.owner.DestroySelf()
-		return fsm.STOP
-	}
-	return ""
-}
-
 type Session struct {
 	*fsm.FSM
 	ctx     *LoginModule
@@ -112,11 +23,7 @@ func NewSession(id uint64, ctx *LoginModule) *Session {
 	c := &Session{}
 	c.ctx = ctx
 	c.id = id
-	c.FSM = fsm.NewFSM()
-	c.FSM.Register("Idle", &Idle{owner: c})
-	c.FSM.Register("Logging", &Logging{owner: c})
-	c.FSM.Register("Logged", &Logged{owner: c})
-	c.FSM.Start("Idle")
+	c.FSM = initState(c)
 	return c
 }
 
