@@ -19,7 +19,7 @@ func (s *Idle) Handle(event int, param interface{}) string {
 	case ETIMER:
 		s.Idle++
 	case EREGION_RESP:
-		if s.owner.checkAllRegion() {
+		if s.owner.hasAllReady() {
 			return SCREATE
 		}
 	default:

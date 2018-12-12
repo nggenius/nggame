@@ -1,14 +1,21 @@
-package gameobject
+package template
 
-import "time"
+import (
+	"time"
+
+	"github.com/nggenius/nggame/gameobject"
+)
 
 type SceneObject struct {
-	BaseObject
+	gameobject.BaseObject
 }
 
 func (s *SceneObject) OnCreate() {
-	s.typ = OBJECT_SCENE
 	s.BaseObject.OnCreate()
+}
+
+func (s *SceneObject) ObjectType() int {
+	return gameobject.OBJECT_SCENE
 }
 
 func (s *SceneObject) OnDestroy() {

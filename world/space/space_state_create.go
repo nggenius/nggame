@@ -15,7 +15,7 @@ func newCreateRegion(o *SpaceManage) *CreateRegion {
 }
 
 func (s *CreateRegion) Enter() {
-	if err := s.owner.createAllRegions(); err != nil {
+	if err := s.owner.createAllRegion(); err != nil {
 		s.owner.ctx.Core.LogErr(err)
 	}
 }

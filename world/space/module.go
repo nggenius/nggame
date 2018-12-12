@@ -30,8 +30,7 @@ func (w *WorldSpaceModule) Init() bool {
 	w.sm.MinRegions = opt.Args.MustInt("MinRegions", 1)
 	w.Core.RegisterRemote("Space", NewSpace(w))
 
-	w.rl = w.Core.Service().AddListener(share.EVENT_MUST_SERVICE_READY, w.sm.OnServiceReady)
-
+	w.rl = w.Core.Service().AddListener(share.EVENT_SERVICE_READY, w.sm.onServiceReady)
 	w.AddPeriod(time.Second)
 	w.AddCallback(time.Second, w.PerSecondCheck)
 	return true

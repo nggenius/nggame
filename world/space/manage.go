@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/nggenius/ngengine/common/event"
 	"github.com/nggenius/ngengine/common/fsm"
 	"github.com/nggenius/ngengine/core/rpc"
 	"github.com/nggenius/ngengine/protocol"
@@ -52,11 +53,12 @@ func NewRegionState(mb rpc.Mailbox) *RegionState {
 	return s
 }
 
-// 负载量，每运行一个场景（即使没有玩家)折算成10个玩家+玩家总数
-func (r RegionState) Capacity() int {
+// Load 负载量，每运行一个场景（即使没有玩家)折算成10个玩家+玩家总数
+func (r RegionState) Load() int {
 	return len(r.regions)*10 + r.players
 }
 
+// HasRegion 是否存在某个区域
 func (r RegionState) HasRegion(id int) bool {
 	for k := range r.regions {
 		if r.regions[k] == id {
@@ -66,6 +68,7 @@ func (r RegionState) HasRegion(id int) bool {
 	return false
 }
 
+// AddRegion 增加一个区域
 func (r *RegionState) AddRegion(id int) {
 	if r.HasRegion(id) {
 		return
@@ -74,6 +77,7 @@ func (r *RegionState) AddRegion(id int) {
 	r.regions = append(r.regions, id)
 }
 
+// RemoveRegion 移除一个区域
 func (r *RegionState) RemoveRegion(id int) {
 	for k := range r.regions {
 		if r.regions[k] == id {
@@ -103,6 +107,7 @@ func NewSpaceManage(ctx *WorldSpaceModule) *SpaceManage {
 	return s
 }
 
+// RegionState 获取regionstate
 func (s *SpaceManage) RegionState(id share.ServiceId) *RegionState {
 	for k := range s.regionstate {
 		if s.regionstate[k].mailbox.ServiceId() == id {
@@ -113,30 +118,42 @@ func (s *SpaceManage) RegionState(id share.ServiceId) *RegionState {
 	return nil
 }
 
-func (s *SpaceManage) AddRegion(rs *RegionState) {
+// AddRegionState 增加一个regionstate
+func (s *SpaceManage) AddRegionState(rs *RegionState) {
 	s.regionstate = append(s.regionstate, rs)
 }
 
-func (s *SpaceManage) OnServiceReady(e string, args ...interface{}) {
-	s.firstLoad.Do(s.CheckRegion)
+func (s *SpaceManage) onServiceReady(e string, args ...interface{}) {
+	info := args[0].(event.EventArgs)
+	srv := s.ctx.Core.LookupService(info["id"].(share.ServiceId))
+	if srv.Type == "region" {
+		rs := s.RegionState(srv.Id)
+		if rs == nil {
+			rs = NewRegionState(*srv.Mailbox())
+			s.AddRegionState(rs)
+		}
+		rs.state = RS_QUERY
+		s.ctx.Core.MailtoAndCallback(nil, srv.Mailbox(), "Region.Query", s.onRegionStateQuery, srv.Id)
+	}
 }
 
-func (s *SpaceManage) CheckRegion() {
+// RefreshRegionState 刷新region state
+func (s *SpaceManage) RefreshRegionState() {
 	srvs := s.ctx.Core.LookupAllServiceByType("region")
 	for _, srv := range srvs {
 		rs := s.RegionState(srv.Id)
 		if rs == nil {
 			rs = NewRegionState(*srv.Mailbox())
-			s.AddRegion(rs)
+			s.AddRegionState(rs)
 		}
 
 		rs.state = RS_QUERY
 
-		s.ctx.Core.MailtoAndCallback(nil, srv.Mailbox(), "Region.Query", s.OnRegionQuery, srv.Id)
+		s.ctx.Core.MailtoAndCallback(nil, srv.Mailbox(), "Region.Query", s.onRegionStateQuery, srv.Id)
 	}
 }
 
-func (s *SpaceManage) OnRegionQuery(p interface{}, rpcerr *rpc.Error, ar *utils.LoadArchive) {
+func (s *SpaceManage) onRegionStateQuery(p interface{}, rpcerr *rpc.Error, ar *utils.LoadArchive) {
 	if rpcerr != nil && protocol.CheckRpcError(rpcerr) {
 		s.ctx.Core.LogErr("rpc error:", rpcerr.Error())
 		return
@@ -156,18 +173,23 @@ func (s *SpaceManage) OnRegionQuery(p interface{}, rpcerr *rpc.Error, ar *utils.
 	//s.CreateRegion(1)
 }
 
-// checkAllRegion 检查所有的区域是否准备好
-func (s *SpaceManage) checkAllRegion() bool {
+// hasAllReady 检查所有的状态是否准备好
+func (s *SpaceManage) hasAllReady() bool {
 	for _, rs := range s.regionstate {
 		if rs.state != RS_RUNNING {
 			return false
 		}
 	}
+
+	if len(s.regionstate) < s.MinRegions {
+		return false
+	}
+
 	return true
 }
 
-// createAllRegions 创建所有的场景
-func (s *SpaceManage) createAllRegions() error {
+// createAllRegion 创建所有的场景
+func (s *SpaceManage) createAllRegion() error {
 	for k := range s.regiondef {
 		if s.FindRegionById(k) == nil {
 			err := s.CreateRegion(k)
@@ -188,22 +210,24 @@ func (s *SpaceManage) FindRegionById(id int) *RegionInfo {
 	return nil
 }
 
-func (s *SpaceManage) findLowerLoadRegion() *RegionState {
+// findLowerLoad 获取一个负载较小的区域服务
+func (s *SpaceManage) findLowerLoad() *RegionState {
 	if len(s.regionstate) == 0 {
 		return nil
 	}
-	low := s.regionstate[0].Capacity()
+	low := s.regionstate[0].Load()
 	rs := s.regionstate[0]
 	for _, r := range s.regionstate {
-		if r.Capacity() < low {
+		if r.Load() < low {
 			rs = r
-			low = r.Capacity()
+			low = r.Load()
 		}
 	}
 
 	return rs
 }
 
+// CreateRegion 创建区域
 func (s *SpaceManage) CreateRegion(id int) error {
 	if _, has := s.regionmap[id]; has {
 		return fmt.Errorf("region already created")
@@ -214,7 +238,7 @@ func (s *SpaceManage) CreateRegion(id int) error {
 		return fmt.Errorf("region def not find")
 	}
 
-	rs := s.findLowerLoadRegion()
+	rs := s.findLowerLoad()
 	if rs == nil {
 		return fmt.Errorf("region not found")
 	}
@@ -228,10 +252,10 @@ func (s *SpaceManage) CreateRegion(id int) error {
 	s.regionmap[id] = &r
 	rs.AddRegion(id)
 
-	return s.ctx.Core.MailtoAndCallback(nil, &rs.mailbox, "Region.Create", s.OnCreateRegion, id, r.Region)
+	return s.ctx.Core.MailtoAndCallback(nil, &rs.mailbox, "Region.Create", s.onCreateRegion, id, r.Region)
 }
 
-func (s *SpaceManage) OnCreateRegion(p interface{}, rpcerr *rpc.Error, ar *utils.LoadArchive) {
+func (s *SpaceManage) onCreateRegion(p interface{}, rpcerr *rpc.Error, ar *utils.LoadArchive) {
 	id := p.(int)
 	ri := s.FindRegionById(id)
 	if ri == nil {

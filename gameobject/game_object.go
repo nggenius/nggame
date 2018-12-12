@@ -66,7 +66,6 @@ type ComponentInfo struct {
 type BaseObject struct {
 	c *Container
 	object.CacheData
-	typ        int
 	delete     bool
 	index      int // 在factory中的索引
 	client     rpc.Mailbox
@@ -133,7 +132,7 @@ func (b *BaseObject) Prepare() {
 
 // ObjectType 获取对象类型
 func (b *BaseObject) ObjectType() int {
-	return b.typ
+	return OBJECT_NONE
 }
 
 // Create 构造函数

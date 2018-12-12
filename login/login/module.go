@@ -132,5 +132,5 @@ func (l *LoginModule) OnDatabaseReady(evt string, args ...interface{}) {
 
 // 所有服务准备就绪
 func (l *LoginModule) OnAllSeverReady(evt string, args ...interface{}) {
-	l.Core.LogErr("所有服务器启动成功。。。。。。。。。。。。。。")
+
 }

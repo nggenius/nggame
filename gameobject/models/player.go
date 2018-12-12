@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/nggenius/nggame/gameobject"
 	"github.com/nggenius/nggame/gameobject/entity"
+	"github.com/nggenius/nggame/gameobject/template"
 )
 
 const (
@@ -10,7 +10,7 @@ const (
 )
 
 type GamePlayer struct {
-	gameobject.RoleObject
+	template.RoleObject
 	*entity.Player
 }
 

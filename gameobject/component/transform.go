@@ -3,7 +3,12 @@ package component
 import "github.com/nggenius/nggame/gameobject"
 
 type Transform struct {
-	gameobject.Component
+	gameobject.GameComponent
+}
+
+func NewTransform() *Transform {
+	t := new(Transform)
+	return t
 }
 
 func (t *Transform) Create() {

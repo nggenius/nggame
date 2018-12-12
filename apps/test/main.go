@@ -23,7 +23,7 @@ var startnest = `{
 	"ServAddr": "127.0.0.1",
 	"ServPort": 0,
 	"Expose": true,
-	"OuterAddr":"192.168.1.12",
+	"OuterAddr":"192.168.21.76",
 	"HostAddr": "0.0.0.0",
 	"HostPort": 0,
 	"LogFile":"log/nest.log",
@@ -42,7 +42,7 @@ var startlogin = `{
 	"ServAddr": "127.0.0.1",
 	"ServPort": 0,
 	"Expose": true,
-	"OuterAddr":"192.168.1.12",
+	"OuterAddr":"192.168.21.76",
 	"HostAddr": "0.0.0.0",
 	"HostPort": 4000,
 	"LogFile":"log/login.log",
@@ -59,7 +59,7 @@ var startworld = `{
 	"ServPort": 0,
 	"Expose": false,
 	"LogFile":"log/world.log",
-	"ResRoot":"D:/home/work/github/ngengine/res/",
+	"ResRoot":"../../res/",
 	"Args": {
 		"Region":"region.json",
 		"MinRegions":1
@@ -94,7 +94,7 @@ var dbargs = `{
 	"LogFile":"log/db.log",
 	"Args": {
 		"db":"mysql",
-		"datasource":"sa:abc@tcp(192.168.1.52:3306)/ngengine?charset=utf8",
+		"datasource":"root:123456@tcp(192.168.21.76:3306)/ngengine?charset=utf8",
 		"showsql":false
 	}
 }`

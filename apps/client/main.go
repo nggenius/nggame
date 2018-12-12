@@ -221,7 +221,7 @@ func (c *Client) Login(name, pass string) {
 
 func main() {
 	client := NewClient()
-	client.Connect("127.0.0.1", 4000)
+	client.Connect("192.168.21.76", 4000)
 	client.Login("test", "123")
 	toolkit.WaitForQuit()
 }

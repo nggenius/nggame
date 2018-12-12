@@ -8,6 +8,7 @@ import (
 	"github.com/nggenius/nggame/define"
 	"github.com/nggenius/nggame/gameobject"
 	"github.com/nggenius/nggame/gameobject/entity"
+	"github.com/nggenius/nggame/gameobject/template"
 	"github.com/nggenius/ngmodule/object"
 )
 
@@ -15,7 +16,7 @@ const GAME_SCENE = "GameScene"
 
 type GameScene struct {
 	*entity.Scene
-	gameobject.SceneObject
+	template.SceneObject
 	factory *object.Factory
 	region  define.Region
 	fsm     *fsm.FSM
