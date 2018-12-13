@@ -1,6 +1,10 @@
 package component
 
-import "github.com/nggenius/nggame/gameobject"
+import (
+	"time"
+
+	"github.com/nggenius/nggame/gameobject"
+)
 
 type Visible struct {
 	gameobject.GameComponent
@@ -12,5 +16,9 @@ func NewVisible() *Visible {
 }
 
 func (v *Visible) Create() {
+
+}
+
+func (v *Visible) Update(delta time.Duration) {
 
 }

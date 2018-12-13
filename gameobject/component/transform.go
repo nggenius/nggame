@@ -1,6 +1,10 @@
 package component
 
-import "github.com/nggenius/nggame/gameobject"
+import (
+	"time"
+
+	"github.com/nggenius/nggame/gameobject"
+)
 
 type Transform struct {
 	gameobject.GameComponent
@@ -12,6 +16,14 @@ func NewTransform() *Transform {
 }
 
 func (t *Transform) Create() {
+	t.Spirit().Core().LogDebug("transform created")
+}
+
+func (t *Transform) Destroy() {
+	t.Spirit().Core().LogDebug("transform destroy")
+}
+
+func (t *Transform) Update(delta time.Duration) {
 
 }
 

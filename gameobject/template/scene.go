@@ -7,11 +7,16 @@ import (
 )
 
 type SceneObject struct {
-	gameobject.BaseObject
+	*gameobject.BaseObject
+}
+
+func NewSceneObject() *SceneObject {
+	so := new(SceneObject)
+	so.BaseObject = new(gameobject.BaseObject)
+	return so
 }
 
 func (s *SceneObject) OnCreate() {
-	s.BaseObject.OnCreate()
 }
 
 func (s *SceneObject) ObjectType() int {
@@ -19,9 +24,8 @@ func (s *SceneObject) ObjectType() int {
 }
 
 func (s *SceneObject) OnDestroy() {
-	s.BaseObject.OnDestroy()
+
 }
 
-func (s *SceneObject) Update(delta time.Duration) {
-	s.BaseObject.Update(delta)
+func (s *SceneObject) OnUpdate(delta time.Duration) {
 }

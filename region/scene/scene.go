@@ -16,7 +16,7 @@ const GAME_SCENE = "GameScene"
 
 type GameScene struct {
 	*entity.Scene
-	template.SceneObject
+	*template.SceneObject
 	factory *object.Factory
 	region  define.Region
 	fsm     *fsm.FSM
@@ -25,8 +25,17 @@ type GameScene struct {
 
 func (s *GameScene) Ctor() {
 	s.Scene = entity.NewScene()
+	s.SceneObject = template.NewSceneObject()
 	s.fsm = initState(s)
 	s.players = list.New()
+}
+
+func (s *GameScene) Object() object.Object {
+	return s.Scene
+}
+
+func (s *GameScene) GameObject() gameobject.GameObject {
+	return s.SceneObject
 }
 
 func (s *GameScene) EntityType() string {

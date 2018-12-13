@@ -62,7 +62,7 @@ func (b *BaseObject) AddChild(pos int, g GameObject) (int, error) {
 		return -1, err
 	}
 
-	g.SetParent(b.gameObject)
+	g.SetParent(b.owner)
 	g.SetParentIndex(pos)
 	return pos, nil
 }
@@ -70,7 +70,7 @@ func (b *BaseObject) AddChild(pos int, g GameObject) (int, error) {
 // RemoveChild 移除一个对象
 func (b *BaseObject) RemoveChild(pos int, g GameObject) error {
 
-	if g.Parent() != b.gameObject {
+	if g.Parent() != b.owner.(GameObject) {
 		return fmt.Errorf("parent not equal")
 	}
 

@@ -30,10 +30,10 @@ type GameObject interface {
 	AddComponent(name string, com Component, update bool) error
 	// RemoveComponent 移除组件
 	RemoveComponent(name string)
-	// 获取组件
+	// GetComponent 获取组件
 	GetComponent(name string) Component
-	// 获取gameobject
-	GameObject() interface{}
+	// Owner 实际的对象
+	Owner() interface{}
 	// Parent 父对象
 	Parent() GameObject
 	// SetParent 设置父对象
@@ -46,6 +46,11 @@ type GameObject interface {
 	Cap() int
 	// SetCap 设置容量，并初始化容器
 	SetCap(cap int) error
+	// 回调
+	OnCreate()
+	OnDestroy()
+	OnUpdate(delta time.Duration)
+	OnDelete()
 }
 
 // GameObjectEqual 判断两个对象是否相等
@@ -66,27 +71,33 @@ type ComponentInfo struct {
 type BaseObject struct {
 	c *Container
 	object.CacheData
-	delete     bool
-	index      int // 在factory中的索引
-	client     rpc.Mailbox
-	spirit     object.Object
-	delegate   object.Delegate
-	component  map[string]ComponentInfo
-	transport  *Transport
-	gameObject GameObject
-	parent     GameObject
-	pi         int  // 在父对象容器中的位置
-	update     bool // 是否每一帧进行调用
+	delete    bool
+	index     int // 在factory中的索引
+	client    rpc.Mailbox
+	spirit    object.Object
+	delegate  object.Delegate
+	component map[string]ComponentInfo
+	transport *Transport
+	owner     ObjectImp
+	parent    GameObject
+	pi        int  // 在父对象容器中的位置
+	update    bool // 是否每一帧进行调用
+}
+
+type ObjectImp interface {
+	object.Object
+	GameObject
 }
 
 // Init 初始化
-func (b *BaseObject) Init(object interface{}) {
-	if g, ok := object.(GameObject); ok {
-		b.gameObject = g
+func (b *BaseObject) Init(inst interface{}) {
+	if owner, ok := inst.(ObjectImp); ok {
+		b.owner = owner
+		b.spirit = inst.(object.Object)
 		return
 	}
 
-	panic("object not implement GameObject")
+	panic("object not implement GameObject and object")
 }
 
 // Parent 父对象
@@ -110,8 +121,8 @@ func (b *BaseObject) SetParentIndex(pi int) {
 }
 
 // GameObject 获取gameobject
-func (b *BaseObject) GameObject() interface{} {
-	return b.gameObject
+func (b *BaseObject) Owner() interface{} {
+	return b.owner
 }
 
 // SetTransport 设置连接
@@ -136,23 +147,32 @@ func (b *BaseObject) ObjectType() int {
 }
 
 // Create 构造函数
-func (b *BaseObject) OnCreate() {
+func (b *BaseObject) Create() {
 	if b.delegate != nil && b.spirit != nil {
 		b.delegate.Invoke(E_ON_CREATE, b.spirit.ObjId(), rpc.NullMailbox)
 	}
+
+	b.owner.OnCreate()
 }
 
 // Destroy 准备销毁
-func (b *BaseObject) OnDestroy() {
+func (b *BaseObject) Destroy() {
 	if b.delegate != nil && b.spirit != nil {
 		b.delegate.Invoke(E_ON_DESTROY, b.spirit.ObjId(), rpc.NullMailbox)
 	}
 	b.delete = true
+
+	for name, comp := range b.component {
+		comp.comp.Destroy() // 销毁组件
+		delete(b.component, name)
+	}
+
+	b.owner.OnDestroy()
 }
 
 // Delete 正式开始删除
-func (b *BaseObject) OnDelete() {
-
+func (b *BaseObject) Delete() {
+	b.owner.OnDelete()
 }
 
 // Alive 是否还活着
@@ -180,11 +200,6 @@ func (b *BaseObject) Spirit() object.Object {
 	return b.spirit
 }
 
-// SetSpirit 设置精神实体
-func (b *BaseObject) SetSpirit(s object.Object) {
-	b.spirit = s
-}
-
 // Client 客户端地址
 func (b *BaseObject) Client() rpc.Mailbox {
 	return b.client
@@ -209,6 +224,8 @@ func (b *BaseObject) Update(delta time.Duration) {
 			comp.comp.Update(delta)
 		}
 	}
+
+	b.owner.OnUpdate(delta)
 }
 
 // GetComponent 获取组件
@@ -231,7 +248,7 @@ func (b *BaseObject) AddComponent(name string, com Component, update bool) error
 		useUpdate: update,
 	}
 
-	com.SetGameObject(b.gameObject)
+	com.SetOwner(b.owner)
 	com.SetEnable(true)
 	// 调用初始化函数
 	com.Create()
@@ -244,4 +261,20 @@ func (b *BaseObject) RemoveComponent(name string) {
 		comp.comp.Destroy() // 销毁组件
 		delete(b.component, name)
 	}
+}
+
+func (b *BaseObject) OnCreate() {
+
+}
+
+func (b *BaseObject) OnDestroy() {
+
+}
+
+func (b *BaseObject) OnDelete() {
+
+}
+
+func (b *BaseObject) OnUpdate(delta time.Duration) {
+
 }

@@ -2,11 +2,13 @@ package gameobject
 
 import (
 	"time"
+
+	"github.com/nggenius/ngmodule/object"
 )
 
 type Component interface {
-	SetGameObject(interface{})
-	GameObject() interface{}
+	SetOwner(GameObject)
+	Owner() GameObject
 	Create()
 	Start()
 	Update(delta time.Duration)
@@ -16,38 +18,51 @@ type Component interface {
 }
 
 type GameComponent struct {
-	gameObject interface{}
-	enable     bool
+	owner  GameObject
+	enable bool
 }
 
-func (g *GameComponent) SetGameObject(obj interface{}) {
-	g.gameObject = obj
+// SetGameObject 设置当前附加的对象，由GameObject调用
+func (g *GameComponent) SetOwner(obj GameObject) {
+	g.owner = obj
 }
 
-func (g *GameComponent) GameObject() interface{} {
-	return g.gameObject
+// GameObject 获取当前附加的对象
+func (g *GameComponent) Owner() GameObject {
+	return g.owner
 }
 
+// Spirit 获取数据对象
+func (g *GameComponent) Spirit() object.Object {
+	return g.owner.Spirit()
+}
+
+// Enable 获取当前组件的开启状态
 func (g *GameComponent) Enable() bool {
 	return g.enable
 }
 
+// SetEnable 设置当前组件的开启状态
 func (g *GameComponent) SetEnable(e bool) {
 	g.enable = e
 }
 
+// Create 组件被创建时调用
 func (g *GameComponent) Create() {
 
 }
 
+// Start 组件开启时被调用
 func (g *GameComponent) Start() {
 
 }
 
+// Update 组件的周期定时回调
 func (g *GameComponent) Update(delta time.Duration) {
 
 }
 
+// Destroy 组件被销毁
 func (g *GameComponent) Destroy() {
 
 }
