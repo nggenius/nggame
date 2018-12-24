@@ -80,8 +80,6 @@ func (l *LoginModule) PerSecondCheck(d time.Duration) {
 }
 
 func (l *LoginModule) OnUpdate(t *service.Time) {
-	l.Module.Update(t)
-
 	// 清理删除对象
 	for ele := l.deleted.Front(); ele != nil; {
 		next := ele.Next()

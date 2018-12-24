@@ -3,6 +3,8 @@ package gameobject
 import (
 	"time"
 
+	"github.com/nggenius/ngengine/core/service"
+
 	"github.com/nggenius/ngmodule/object"
 )
 
@@ -30,6 +32,11 @@ func (g *GameComponent) SetOwner(obj GameObject) {
 // GameObject 获取当前附加的对象
 func (g *GameComponent) Owner() GameObject {
 	return g.owner
+}
+
+// Core
+func (g *GameComponent) Core() service.CoreAPI {
+	return g.owner.Spirit().Core()
 }
 
 // Spirit 获取数据对象

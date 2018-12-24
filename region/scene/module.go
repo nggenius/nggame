@@ -42,5 +42,4 @@ func (s *SceneModule) PerSecondCheck(d time.Duration) {
 }
 
 func (s *SceneModule) OnUpdate(t *service.Time) {
-	s.Module.Update(t)
 }

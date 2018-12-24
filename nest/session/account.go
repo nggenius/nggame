@@ -53,6 +53,7 @@ func (a *Account) requestRoleInfo(session *Session) error {
 		"inner.Role",
 		map[string]interface{}{
 			"Account=?": session.Account,
+			"Deleted=?": 0,
 		},
 		0, 0, a.OnRoleInfo); err != nil {
 		session.Error(share.S2C_ERR_SERVICE_INVALID)
@@ -79,6 +80,40 @@ func (a *Account) OnRoleInfo(p interface{}, e *rpc.Error, ar *utils.LoadArchive)
 		return
 	}
 	session.Dispatch(EROLEINFO, [2]interface{}{rpc.OK, roles})
+}
+
+func (a *Account) SaveRole(session *Session) error {
+	player := session.gameobject.Spirit()
+	if player == nil {
+		return fmt.Errorf("player is nil")
+	}
+
+	err := a.ctx.store.Custom(
+		session.Mailbox,
+		a.OnSaveRole,
+		"Store.SaveRole",
+		player.DBId(),
+		player.Archive(),
+	)
+
+	return err
+}
+
+func (a *Account) OnSaveRole(param interface{}, replyerr *rpc.Error, ar *utils.LoadArchive) {
+	mailbox := param.(*rpc.Mailbox)
+
+	session := a.ctx.FindSession(mailbox.Id())
+	if session == nil {
+		a.ctx.Core.LogErr("session not found", mailbox.Id())
+		return
+	}
+
+	if replyerr != nil && replyerr.ErrCode() != 0 {
+		session.Dispatch(ESTORED, replyerr.ErrCode())
+		return
+	}
+
+	session.Dispatch(ESTORED, rpc.OK)
 }
 
 func (a *Account) CreateRole(session *Session, args c2s.CreateRole) error {
@@ -134,13 +169,11 @@ func (a *Account) OnCreateRole(p interface{}, e *rpc.Error, ar *utils.LoadArchiv
 
 func (a *Account) ChooseRole(session *Session, args c2s.ChooseRole) error {
 
-	if err := a.ctx.store.Get(
+	if err := a.ctx.store.Custom(
 		session.Mailbox,
-		a.ctx.mainEntity,
-		map[string]interface{}{
-			"id=?": args.RoleID,
-		},
-		a.OnChooseRole); err != nil {
+		a.OnChooseRole,
+		"Store.ChooseRole",
+		args.RoleID); err != nil {
 		session.Error(share.S2C_ERR_SERVICE_INVALID)
 		return err
 	}
@@ -148,7 +181,7 @@ func (a *Account) ChooseRole(session *Session, args c2s.ChooseRole) error {
 	return nil
 }
 
-func (a *Account) OnChooseRole(p interface{}, e *rpc.Error, ar *utils.LoadArchive) {
+func (a *Account) OnChooseRole(p interface{}, err *rpc.Error, ar *utils.LoadArchive) {
 
 	mailbox := p.(*rpc.Mailbox)
 
@@ -158,8 +191,13 @@ func (a *Account) OnChooseRole(p interface{}, e *rpc.Error, ar *utils.LoadArchiv
 		return
 	}
 
-	inst, err := a.ctx.factory.Create(a.ctx.role)
-	if err != nil {
+	if err != nil && protocol.CheckRpcError(err) {
+		session.Dispatch(ECHOOSED, [2]interface{}{err.ErrCode(), nil})
+		return
+	}
+
+	inst, err1 := a.ctx.factory.Create(a.ctx.role)
+	if err1 != nil {
 		a.ctx.Core.LogFatal("entity create failed")
 		return
 	}
@@ -180,12 +218,11 @@ func (a *Account) OnChooseRole(p interface{}, e *rpc.Error, ar *utils.LoadArchiv
 		return
 	}
 
-	err1 := store.ParseGetReply(e, ar, player.Archive())
-
+	err1 = ar.Read(player.Archive())
 	if err1 != nil {
 		a.ctx.factory.Destroy(inst)
 		a.ctx.Core.LogErr(err1)
-		session.Dispatch(ECHOOSED, [2]interface{}{err1.ErrCode(), nil})
+		session.Dispatch(ECHOOSED, [2]interface{}{share.ERR_ARGS_ERROR, nil})
 		return
 	}
 

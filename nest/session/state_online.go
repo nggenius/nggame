@@ -13,6 +13,15 @@ type online struct {
 	online bool
 }
 
+func (o *online) Enter() {
+	if o.owner.enterregion {
+		o.owner.FindRegion()
+		o.online = false
+		return
+	}
+	o.owner.Dispatch(EONLINE, nil)
+}
+
 func (o *online) Handle(event int, param interface{}) string {
 	switch event {
 	case EFREGION:
@@ -36,10 +45,11 @@ func (o *online) Handle(event int, param interface{}) string {
 	case EONLINE:
 		o.online = true
 		o.Idle = 0
+		o.owner.ctx.Core.LogDebug("player online")
 	case EBREAK:
 		//o.owner.DestroySelf()
 		o.owner.ctx.Core.LogInfo("client break")
-		return SLEAVING
+		return SOFFLINE
 	case ETIMER:
 		o.Idle++
 		if !o.online {

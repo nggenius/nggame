@@ -5,21 +5,22 @@ import (
 )
 
 const (
-	NONE      = iota
-	ETIMER    // 1秒钟的定时器
-	EBREAK    // 客户端断开连接
-	ELOGIN    // 客户端登录
-	EROLEINFO // 角色列表
-	ECREATE   // 创建角色
-	ECREATED  // 创建完成
-	ECHOOSE   // 选择角色
-	ECHOOSED  // 选择角色成功
-	EDELETE   // 删除角色
-	EDELETED  // 删除成功
-	ESTORED   // 存档完成
-	EONLINE   // 进入场景
-	EFREGION  // 查找场景
-	ESWREGION // 切换场景
+	NONE        = iota
+	ETIMER      // 1秒钟的定时器
+	EBREAK      // 客户端断开连接
+	ELOGIN      // 客户端登录
+	EROLEINFO   // 角色列表
+	ECREATE     // 创建角色
+	ECREATED    // 创建完成
+	ECHOOSE     // 选择角色
+	ECHOOSED    // 选择角色成功
+	EDELETE     // 删除角色
+	EDELETED    // 删除成功
+	ESTORED     // 存档完成
+	EONLINE     // 进入场景
+	EFREGION    // 查找场景
+	ESWREGION   // 切换场景
+	EREMAINTIME // 更新离线存活时间
 )
 
 const (

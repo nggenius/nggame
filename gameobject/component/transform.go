@@ -16,11 +16,11 @@ func NewTransform() *Transform {
 }
 
 func (t *Transform) Create() {
-	t.Spirit().Core().LogDebug("transform created")
+	t.Core().LogDebug("transform created")
 }
 
 func (t *Transform) Destroy() {
-	t.Spirit().Core().LogDebug("transform destroy")
+	t.Core().LogDebug("transform destroy")
 }
 
 func (t *Transform) Update(delta time.Duration) {

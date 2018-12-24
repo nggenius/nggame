@@ -16,11 +16,19 @@ type Store struct {
 func (d *Store) Prepare(core service.CoreAPI) error {
 	d.CoreAPI = core
 	d.store = store.New()
-	d.role = extension.NewRole(d.CoreAPI, d.store)
+
 	return nil
 }
 
 func (d *Store) Init(opt *service.CoreOption) error {
+	d.role = extension.NewRole(
+		d.CoreAPI,
+		d.store,
+		opt.Args.MustString("Role", "inner.Role"),
+		opt.Args.MustString("MainEntity", "entity.Player"),
+		opt.Args.MustString("PlayerTable", "player"),
+		opt.Args.MustString("PlayerBackup", "player_bak"),
+	)
 	d.CoreAPI.AddModule(d.store)
 	d.store.SetMode(store.STORE_SERVER)
 	d.store.Extend("role", d.role)

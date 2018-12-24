@@ -13,7 +13,9 @@ import (
 )
 
 var (
-	configPath = flag.String("p", "../config/", "app config path")
+	configPath = flag.String("p", "../config/", "config path")
+	appdef     = flag.String("a", "/app.cfg", "app config file")
+	srvdef     = flag.String("s", "/servers.cfg", "services config file")
 )
 
 func main() {
@@ -30,7 +32,7 @@ func main() {
 
 	var config ngadmin.Options
 
-	err := config.Load(*configPath+"app.cfg", *configPath+"servers.cfg")
+	err := config.Load(fmt.Sprintf("%s/%s", *configPath, *appdef), fmt.Sprintf("%s/%s", *configPath, *srvdef))
 	if err != nil {
 		panic(err)
 	}

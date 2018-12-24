@@ -19,16 +19,18 @@ import (
 //		存储客户端对应的entity数据
 type SessionModule struct {
 	service.Module
-	store      *store.StoreClient
-	factory    *object.ObjectModule
-	account    *Account
-	proxy      *proxy
-	sessions   SessionDB  // session管理器
-	deleted    *list.List // 标志为删除的session
-	cache      cache      // 缓存的口令
-	mainEntity string     // 主实体
-	role       string     // 玩家类名
-	ls         map[string]*event.EventListener
+	store       *store.StoreClient
+	factory     *object.ObjectModule
+	account     *Account
+	proxy       *proxy
+	sessions    SessionDB     // session管理器
+	deleted     *list.List    // 标志为删除的session
+	cache       cache         // 缓存的口令
+	mainEntity  string        // 主实体
+	role        string        // 玩家类名
+	offlinetime time.Duration // 默认离线存活时间
+	saveTimeout time.Duration // 存档超时时间
+	ls          map[string]*event.EventListener
 }
 
 func New() *SessionModule {
@@ -50,6 +52,8 @@ func (s *SessionModule) Init() bool {
 	opt := s.Core.Option()
 	s.mainEntity = opt.Args.String("MainEntity")
 	s.role = opt.Args.String("Role")
+	s.offlinetime = time.Second * time.Duration(opt.Args.MustInt("OfflineRemain", 0))
+	s.saveTimeout = time.Second * time.Duration(opt.Args.MustInt("SaveTimeout", 60))
 	store := s.Core.MustModule("Store").(*store.StoreModule)
 	if store == nil {
 		s.Core.LogFatal("need Store module")
@@ -89,7 +93,6 @@ func (s *SessionModule) PerSecondCheck(d time.Duration) {
 }
 
 func (s *SessionModule) OnUpdate(t *service.Time) {
-	s.Module.OnUpdate(t)
 	// 清理删除对象
 	for ele := s.deleted.Front(); ele != nil; {
 		next := ele.Next()

@@ -37,7 +37,6 @@ func (c *chooserole) Handle(event int, param interface{}) string {
 		c.owner.SetGameObject(player)
 		x, y, z, o := ls.LandPosXYZOrient()
 		c.owner.SetLandInfo(ls.LandScene(), x, y, z, o)
-		c.owner.FindRegion()
 		return SONLINE
 	case EBREAK:
 		c.owner.DestroySelf()

@@ -1,6 +1,8 @@
 package session
 
 import (
+	"time"
+
 	"github.com/nggenius/ngengine/common/fsm"
 	"github.com/nggenius/ngengine/core/rpc"
 	"github.com/nggenius/nggame/gameobject"
@@ -23,6 +25,9 @@ type Session struct {
 	landscene          int64
 	lx, ly, lz, orient float64
 	region             rpc.Mailbox
+	enterregion        bool
+	offlineTimeout     time.Duration
+	remainTime         time.Duration
 }
 
 func NewSession(id uint64, ctx *SessionModule) *Session {
@@ -116,6 +121,11 @@ func (s *Session) ChooseRole(info c2s.ChooseRole) error {
 // DeleteRole 删除角色
 func (s *Session) DeleteRole(info c2s.DeleteRole) error {
 	return s.ctx.account.DeleteRole(s, info)
+}
+
+// SaveRole 保存角色数据
+func (s *Session) SaveRole() error {
+	return s.ctx.account.SaveRole(s)
 }
 
 func (s *Session) FindRegion() error {

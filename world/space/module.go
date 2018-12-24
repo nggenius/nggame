@@ -45,7 +45,6 @@ func (w *WorldSpaceModule) PerSecondCheck(t time.Duration) {
 }
 
 func (w *WorldSpaceModule) OnUpdate(t *service.Time) {
-	w.Module.Update(t)
 }
 
 func (w *WorldSpaceModule) Shut() {
