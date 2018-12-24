@@ -124,8 +124,8 @@ func (s *Session) DeleteRole(info c2s.DeleteRole) error {
 }
 
 // SaveRole 保存角色数据
-func (s *Session) SaveRole() error {
-	return s.ctx.account.SaveRole(s)
+func (s *Session) SaveRole(stype int) error {
+	return s.ctx.account.SaveRole(s, stype)
 }
 
 func (s *Session) FindRegion() error {

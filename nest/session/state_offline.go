@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/nggenius/ngengine/common/fsm"
+	"github.com/nggenius/ngmodule/store"
 )
 
 type offline struct {
@@ -21,7 +22,7 @@ func (o *offline) Handle(event int, param interface{}) string {
 	switch event {
 	case ETIMER:
 		if time.Now().Sub(o.remainTime) > 0 {
-			o.owner.SaveRole()
+			o.owner.SaveRole(store.STORE_SAVE_OFFLINE)
 			return SLEAVING
 		}
 	case EREMAINTIME:

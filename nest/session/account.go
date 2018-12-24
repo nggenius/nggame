@@ -82,16 +82,17 @@ func (a *Account) OnRoleInfo(p interface{}, e *rpc.Error, ar *utils.LoadArchive)
 	session.Dispatch(EROLEINFO, [2]interface{}{rpc.OK, roles})
 }
 
-func (a *Account) SaveRole(session *Session) error {
+func (a *Account) SaveRole(session *Session, stype int) error {
 	player := session.gameobject.Spirit()
 	if player == nil {
 		return fmt.Errorf("player is nil")
 	}
 
 	err := a.ctx.store.Custom(
-		session.Mailbox,
+		[2]interface{}{session.Mailbox, stype},
 		a.OnSaveRole,
 		"Store.SaveRole",
+		int8(stype),
 		player.DBId(),
 		player.Archive(),
 	)
@@ -100,8 +101,9 @@ func (a *Account) SaveRole(session *Session) error {
 }
 
 func (a *Account) OnSaveRole(param interface{}, replyerr *rpc.Error, ar *utils.LoadArchive) {
-	mailbox := param.(*rpc.Mailbox)
-
+	args := param.([2]interface{})
+	mailbox := args[0].(*rpc.Mailbox)
+	stype := args[1].(int)
 	session := a.ctx.FindSession(mailbox.Id())
 	if session == nil {
 		a.ctx.Core.LogErr("session not found", mailbox.Id())
@@ -109,11 +111,11 @@ func (a *Account) OnSaveRole(param interface{}, replyerr *rpc.Error, ar *utils.L
 	}
 
 	if replyerr != nil && replyerr.ErrCode() != 0 {
-		session.Dispatch(ESTORED, replyerr.ErrCode())
+		session.Dispatch(ESTORED, [2]interface{}{replyerr.ErrCode(), stype})
 		return
 	}
 
-	session.Dispatch(ESTORED, rpc.OK)
+	session.Dispatch(ESTORED, [2]interface{}{rpc.OK, stype})
 }
 
 func (a *Account) CreateRole(session *Session, args c2s.CreateRole) error {
@@ -173,7 +175,9 @@ func (a *Account) ChooseRole(session *Session, args c2s.ChooseRole) error {
 		session.Mailbox,
 		a.OnChooseRole,
 		"Store.ChooseRole",
-		args.RoleID); err != nil {
+		session.Mailbox,
+		args.RoleID,
+	); err != nil {
 		session.Error(share.S2C_ERR_SERVICE_INVALID)
 		return err
 	}
@@ -222,7 +226,7 @@ func (a *Account) OnChooseRole(p interface{}, err *rpc.Error, ar *utils.LoadArch
 	if err1 != nil {
 		a.ctx.factory.Destroy(inst)
 		a.ctx.Core.LogErr(err1)
-		session.Dispatch(ECHOOSED, [2]interface{}{share.ERR_ARGS_ERROR, nil})
+		session.Dispatch(ECHOOSED, [2]interface{}{int32(share.ERR_ARGS_ERROR), nil})
 		return
 	}
 

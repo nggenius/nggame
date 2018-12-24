@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/nggenius/ngengine/common/fsm"
+	"github.com/nggenius/ngmodule/store"
 )
 
 type leaving struct {
@@ -21,7 +22,8 @@ func (l *leaving) Enter() {
 func (l *leaving) Handle(event int, param interface{}) string {
 	switch event {
 	case ESTORED:
-		if ok := param.(int32); ok == 0 {
+		args := param.([2]interface{})
+		if ok := args[0].(int32); ok == 0 {
 			l.owner.Break()
 			l.owner.DestroySelf()
 		} else {
@@ -29,7 +31,7 @@ func (l *leaving) Handle(event int, param interface{}) string {
 		}
 	case ETIMER:
 		if time.Now().Sub(l.saveTimeout) > 0 {
-			l.owner.SaveRole()
+			l.owner.SaveRole(store.STORE_SAVE_OFFLINE)
 			l.saveTimeout = time.Now().Add(l.owner.ctx.saveTimeout)
 			l.owner.ctx.Core.LogWarn("save role timeout")
 		}

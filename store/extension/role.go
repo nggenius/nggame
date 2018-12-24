@@ -120,10 +120,10 @@ func (r *Role) DeleteRole(sender, _ rpc.Mailbox, msg *protocol.Message) (errcode
 }
 
 func (r *Role) ChooseRole(sender, _ rpc.Mailbox, msg *protocol.Message) (errcode int32, reply *protocol.Message) {
-	m := protocol.NewMessageReader(msg)
-	roleid, err := m.ReadInt64()
-	if err != nil {
-		r.ctx.LogFatal("read roleid failed, ", err)
+	var nest rpc.Mailbox
+	var roleid int64
+	if err := protocol.ParseArgs(msg, &nest, &roleid); err != nil {
+		r.ctx.LogFatal("read args failed, ", err)
 		return 0, nil
 	}
 
@@ -148,9 +148,8 @@ func (r *Role) ChooseRole(sender, _ rpc.Mailbox, msg *protocol.Message) (errcode
 		return protocol.ReplyError(protocol.TINY, store.ERR_STORE_ROLE_STATUS_ERROR, "player status error")
 	}
 
-	role.UpdateLogTime()
-	_, err = session.Id(roleid).Cols("last_log_time").Update(role)
-	if err != nil {
+	role.Login(nest)
+	if _, err := session.Id(roleid).Cols("last_log_time", "nest").Update(role); err != nil {
 		return protocol.ReplyError(protocol.TINY, store.ERR_STORE_ERROR, err.Error())
 	}
 
@@ -163,33 +162,37 @@ func (r *Role) ChooseRole(sender, _ rpc.Mailbox, msg *protocol.Message) (errcode
 }
 
 func (r *Role) SaveRole(src rpc.Mailbox, _ rpc.Mailbox, msg *protocol.Message) (int32, *protocol.Message) {
-	m := protocol.NewMessageReader(msg)
-	roleid, err := m.ReadInt64()
-	if err != nil {
+	role := new(inner.Role)
+	player := r.store.CreateDBObj(r.entity)
+
+	var typ int8
+	var roleid int64
+
+	if err := protocol.ParseArgs(msg, &typ, &roleid, player); err != nil {
 		r.ctx.LogFatal("read roleid failed, ", err)
 		return 0, nil
 	}
 
-	role := new(inner.Role)
-	player := r.store.CreateDBObj(r.entity)
-	err = m.Read(player)
-	if err != nil {
-		r.ctx.LogFatal("read player failed, ", err)
-		return 0, nil
-	}
 	session := r.store.Sql().Session()
 	defer session.Close()
 
 	session.Begin()
 
 	role.Id = roleid
-	role.Save()
-	if _, err = session.Id(roleid).Cols("save_time").Update(role); err != nil {
+	role.Save(typ == store.STORE_SAVE_OFFLINE)
+	var cols []string
+	if typ == store.STORE_SAVE_OFFLINE {
+		cols = []string{"save_time", "nest"}
+	} else {
+		cols = []string{"save_time"}
+	}
+
+	if _, err := session.Id(roleid).Cols(cols...).Update(role); err != nil {
 		r.ctx.LogErr(err.Error())
 		return protocol.ReplyError(protocol.TINY, store.ERR_STORE_SAVE_FAILED, err.Error())
 	}
 
-	if _, err = session.Id(roleid).Update(player); err != nil {
+	if _, err := session.Id(roleid).Update(player); err != nil {
 		r.ctx.LogErr(err.Error())
 		return protocol.ReplyError(protocol.TINY, store.ERR_STORE_SAVE_FAILED, err.Error())
 	}

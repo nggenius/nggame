@@ -2,6 +2,8 @@ package inner
 
 import (
 	"time"
+
+	"github.com/nggenius/ngengine/core/rpc"
 )
 
 type Role struct {
@@ -13,7 +15,7 @@ type Role struct {
 	LastLogTime time.Time
 	LastAddress string `xorm:"varchar(32)"`
 	Status      int8
-	ServerId    int64
+	Nest        int64
 	Deleted     int8
 	DeleteTime  time.Time
 	SaveTime    time.Time
@@ -37,8 +39,9 @@ func (r *Role) GetStatus() int8 {
 	return r.Status
 }
 
-func (r *Role) UpdateLogTime() {
+func (r *Role) Login(nest rpc.Mailbox) {
 	r.LastLogTime = time.Now()
+	r.Nest = int64(nest)
 }
 
 func (r *Role) GetDeleted() bool {
@@ -50,6 +53,9 @@ func (r *Role) Delete() {
 	r.DeleteTime = time.Now()
 }
 
-func (r *Role) Save() {
+func (r *Role) Save(offline bool) {
 	r.SaveTime = time.Now()
+	if offline {
+		r.Nest = 0
+	}
 }
