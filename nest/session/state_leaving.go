@@ -7,7 +7,7 @@ import (
 	"github.com/nggenius/ngmodule/store"
 )
 
-type leaving struct {
+type Leaving struct {
 	fsm.Default
 	owner       *Session
 	Idle        int32
@@ -15,28 +15,41 @@ type leaving struct {
 	errors      int
 }
 
-func (l *leaving) Enter() {
-	l.saveTimeout = time.Now().Add(l.owner.ctx.saveTimeout)
+func newLeaving(o *Session) *Leaving {
+	s := new(Leaving)
+	s.owner = o
+	return s
 }
 
-func (l *leaving) Handle(event int, param interface{}) string {
-	switch event {
-	case ESTORED:
-		args := param.([2]interface{})
-		if ok := args[0].(int32); ok == 0 {
-			l.owner.Break()
-			l.owner.DestroySelf()
-		} else {
-			l.owner.ctx.Core.LogWarn("save player failed")
-		}
-	case ETIMER:
-		if time.Now().Sub(l.saveTimeout) > 0 {
-			l.owner.SaveRole(store.STORE_SAVE_OFFLINE)
-			l.saveTimeout = time.Now().Add(l.owner.ctx.saveTimeout)
-			l.owner.ctx.Core.LogWarn("save role timeout")
-		}
-	default:
-		l.owner.ctx.Core.LogWarnf("leaving state receive error event(%d)", event)
+func (s *Leaving) Init(r fsm.StateRegister) {
+	r.AddHandle(ESTORED, s.OnStored)
+}
+
+func (s *Leaving) Enter() {
+	s.saveTimeout = time.Now().Add(s.owner.ctx.saveTimeout)
+}
+
+func (s *Leaving) OnTimer() string {
+	if time.Now().Sub(s.saveTimeout) > 0 {
+		s.owner.SaveRole(store.STORE_SAVE_OFFLINE)
+		s.saveTimeout = time.Now().Add(s.owner.ctx.saveTimeout)
+		s.owner.ctx.Core.LogWarn("save role timeout")
 	}
+	return ""
+}
+
+func (s *Leaving) OnStored(event int, param interface{}) string {
+	args := param.([2]interface{})
+	if ok := args[0].(int32); ok == 0 {
+		s.owner.Break()
+		s.owner.DestroySelf()
+	} else {
+		s.owner.ctx.Core.LogWarn("save player failed")
+	}
+	return ""
+}
+
+func (s *Leaving) OnHandle(event int, param interface{}) string {
+	s.owner.ctx.Core.LogWarnf("leaving state receive error event(%d)", event)
 	return ""
 }

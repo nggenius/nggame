@@ -7,57 +7,82 @@ import (
 	"github.com/nggenius/nggame/proto/c2s"
 )
 
-type logged struct {
+type Logged struct {
 	fsm.Default
 	owner *Session
 	Idle  int32
 }
 
-func (s *logged) Handle(event int, param interface{}) string {
-	switch event {
-	case ETIMER:
-		s.Idle++
-		if s.Idle > 60 {
-			s.owner.Break()
-			return ""
-		}
-	case EBREAK:
-		s.owner.DestroySelf()
-		return fsm.STOP
-	case EROLEINFO:
-		args := param.([2]interface{})
-		errcode := args[0].(int32)
-		roles := args[1].([]*inner.Role)
-		if errcode != 0 {
-			s.owner.Error(errcode)
-			return ""
-		}
+func newLogged(o *Session) *Logged {
+	s := new(Logged)
+	s.owner = o
+	return s
+}
 
-		s.owner.SendRoleInfo(roles)
-		s.Idle = 0
-	case EDELETE:
-		args := param.(c2s.DeleteRole)
-		if err := s.owner.DeleteRole(args); err != nil {
-			s.owner.Error(share.ERR_SYSTEM_ERROR)
-			return ""
-		}
-		return SDELETE
-	case ECREATE:
-		args := param.(c2s.CreateRole)
-		if err := s.owner.CreateRole(args); err != nil {
-			s.owner.Error(share.ERR_SYSTEM_ERROR)
-			return ""
-		}
-		return SCREATE
-	case ECHOOSE:
-		args := param.(c2s.ChooseRole)
-		if err := s.owner.ChooseRole(args); err != nil {
-			s.owner.Error(share.ERR_SYSTEM_ERROR)
-			return ""
-		}
-		return SCHOOSE
-	default:
-		s.owner.ctx.Core.LogWarnf("logged state receive error event(%d)", event)
+func (s *Logged) Init(r fsm.StateRegister) {
+	r.AddHandle(EBREAK, s.OnBreak)
+	r.AddHandle(EROLEINFO, s.OnRoleInfo)
+	r.AddHandle(EDELETE, s.OnDelete)
+	r.AddHandle(ECREATE, s.OnCreate)
+	r.AddHandle(ECHOOSE, s.OnChoose)
+}
+
+func (s *Logged) OnTimer() string {
+	s.Idle++
+	if s.Idle > 60 {
+		s.owner.Break()
+		return ""
 	}
+	return ""
+}
+
+func (s *Logged) OnBreak(event int, param interface{}) string {
+	s.owner.DestroySelf()
+	return fsm.STOP
+}
+
+func (s *Logged) OnRoleInfo(event int, param interface{}) string {
+	args := param.([2]interface{})
+	errcode := args[0].(int32)
+	roles := args[1].([]*inner.Role)
+	if errcode != 0 {
+		s.owner.Error(errcode)
+		return ""
+	}
+
+	s.owner.SendRoleInfo(roles)
+	s.Idle = 0
+	return ""
+}
+
+func (s *Logged) OnDelete(event int, param interface{}) string {
+	args := param.(c2s.DeleteRole)
+	if err := s.owner.DeleteRole(args); err != nil {
+		s.owner.Error(share.ERR_SYSTEM_ERROR)
+		return ""
+	}
+	return SDELETE
+}
+
+func (s *Logged) OnCreate(event int, param interface{}) string {
+	args := param.(c2s.CreateRole)
+	if err := s.owner.CreateRole(args); err != nil {
+		s.owner.Error(share.ERR_SYSTEM_ERROR)
+		return ""
+	}
+	return SCREATE
+}
+
+func (s *Logged) OnChoose(event int, param interface{}) string {
+	args := param.(c2s.ChooseRole)
+	if err := s.owner.ChooseRole(args); err != nil {
+		s.owner.Error(share.ERR_SYSTEM_ERROR)
+		return ""
+	}
+	return SCHOOSE
+}
+
+func (s *Logged) OnHandle(event int, param interface{}) string {
+	s.owner.ctx.Core.LogWarnf("logged state receive error event(%d)", event)
 	return ""
 }

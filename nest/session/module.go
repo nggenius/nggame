@@ -87,7 +87,7 @@ func (s *SessionModule) PerSecondCheck(d time.Duration) {
 	s.cache.Check()
 	for _, s := range s.sessions {
 		if !s.delete {
-			s.Dispatch(ETIMER, nil)
+			s.Timeout()
 		}
 	}
 }

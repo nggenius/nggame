@@ -6,7 +6,6 @@ import (
 
 const (
 	NONE        = iota
-	ETIMER      // 1秒钟的定时器
 	EBREAK      // 客户端断开连接
 	ELOGIN      // 客户端登录
 	EROLEINFO   // 角色列表
@@ -36,14 +35,14 @@ const (
 
 func initState(s *Session) *fsm.FSM {
 	fsm := fsm.NewFSM()
-	fsm.Register(SIDLE, &idlestate{owner: s})
-	fsm.Register(SLOGGED, &logged{owner: s})
-	fsm.Register(SCREATE, &createrole{owner: s})
-	fsm.Register(SCHOOSE, &chooserole{owner: s})
-	fsm.Register(SDELETE, &deleting{owner: s})
-	fsm.Register(SONLINE, &online{owner: s})
-	fsm.Register(SOFFLINE, &offline{owner: s})
-	fsm.Register(SLEAVING, &leaving{owner: s})
+	fsm.Register(SIDLE, newIdle(s))
+	fsm.Register(SLOGGED, newLogged(s))
+	fsm.Register(SCREATE, newCreateRole(s))
+	fsm.Register(SCHOOSE, newChooseRole(s))
+	fsm.Register(SDELETE, newDeleting(s))
+	fsm.Register(SONLINE, newOnline(s))
+	fsm.Register(SOFFLINE, newOffline(s))
+	fsm.Register(SLEAVING, newLeaving(s))
 	fsm.Start(SIDLE)
 	return fsm
 }

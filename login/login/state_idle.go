@@ -11,20 +11,36 @@ type Idle struct {
 	idle  int32
 }
 
-func (s *Idle) Handle(event int, param interface{}) string {
-	switch event {
-	case LOGIN:
-		s.owner.Login(param.(*c2s.Login))
-		return SLOGGING
-	case TIMER:
-		s.idle++
-		if s.idle > 60 {
-			s.owner.Break()
-			return ""
-		}
-	case BREAK:
-		s.owner.DestroySelf()
-		return fsm.STOP
+func NewIdle(s *Session) *Idle {
+	state := new(Idle)
+	state.owner = s
+	return state
+}
+
+func (s *Idle) Init(r fsm.StateRegister) {
+	r.AddHandle(LOGIN, s.OnLogin)
+	r.AddHandle(BREAK, s.OnBreak)
+}
+
+func (s *Idle) OnTimer() string {
+	s.idle++
+	if s.idle > 60 {
+		s.owner.Break()
 	}
+	return ""
+}
+
+func (s *Idle) OnLogin(event int, param interface{}) string {
+	s.owner.Login(param.(*c2s.Login))
+	return SLOGGING
+}
+
+func (s *Idle) OnBreak(event int, param interface{}) string {
+	s.owner.DestroySelf()
+	return fsm.STOP
+}
+
+func (s *Idle) OnHandle(event int, param interface{}) string {
+	s.owner.ctx.Core.LogWarnf("idle state receive error event(%d)", event)
 	return ""
 }

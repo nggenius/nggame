@@ -12,23 +12,41 @@ type Logging struct {
 	idle  int32
 }
 
-func (l *Logging) Handle(event int, param interface{}) string {
-	switch event {
-	case LOGIN_RESULT:
-		args := param.([2]interface{})
-		if l.owner.LoginResult(args[0].(int32), args[1].(*inner.Account)) {
-			return SLOGGED
-		}
-	case TIMER:
-		l.idle++
-		if l.idle > 60 {
-			l.owner.Error(share.S2C_ERR_SERVICE_INVALID)
-			l.owner.Break()
-			return ""
-		}
-	case BREAK:
-		l.owner.DestroySelf()
-		return fsm.STOP
+func NewLogging(s *Session) *Logging {
+	state := new(Logging)
+	state.owner = s
+	return state
+}
+
+func (s *Logging) Init(r fsm.StateRegister) {
+	r.AddHandle(LOGIN_RESULT, s.OnLogin)
+	r.AddHandle(BREAK, s.OnBreak)
+}
+
+func (s *Logging) OnTimer() string {
+	s.idle++
+	if s.idle > 60 {
+		s.owner.Error(share.S2C_ERR_SERVICE_INVALID)
+		s.owner.Break()
+		return ""
 	}
+	return ""
+}
+
+func (s *Logging) OnLogin(event int, param interface{}) string {
+	args := param.([2]interface{})
+	if s.owner.LoginResult(args[0].(int32), args[1].(*inner.Account)) {
+		return SLOGGED
+	}
+	return ""
+}
+
+func (s *Logging) OnBreak(event int, param interface{}) string {
+	s.owner.DestroySelf()
+	return fsm.STOP
+}
+
+func (s *Logging) OnHandle(event int, param interface{}) string {
+	s.owner.ctx.Core.LogWarnf("logging state receive error event(%d)", event)
 	return ""
 }

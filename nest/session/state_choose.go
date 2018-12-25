@@ -6,49 +6,64 @@ import (
 	"github.com/nggenius/nggame/gameobject"
 )
 
-type chooserole struct {
+type ChooseRole struct {
 	fsm.Default
 	owner *Session
 	Idle  int32
 }
 
-func (c *chooserole) Handle(event int, param interface{}) string {
-	switch event {
-	case ECHOOSED:
-		args := param.([2]interface{})
-		errcode := args[0].(int32)
-		if errcode != 0 {
-			c.owner.Error(errcode)
-			return SLOGGED
-		}
-		player := args[1].(gameobject.GameObject)
-		if player == nil {
-			c.owner.Error(define.ERR_CHOOSE_ROLE)
-			return SLOGGED
-		}
+func newChooseRole(o *Session) *ChooseRole {
+	s := new(ChooseRole)
+	s.owner = o
+	return s
+}
 
-		ls, ok := player.(LandInfo)
-		if !ok {
-			c.owner.DestroySelf()
-			c.owner.ctx.Core.LogErr("entity not define landpos ", c.owner.ctx.mainEntity)
-			return ""
-		}
-		c.owner.ctx.Core.LogDebug("enter game")
-		c.owner.SetGameObject(player)
-		x, y, z, o := ls.LandPosXYZOrient()
-		c.owner.SetLandInfo(ls.LandScene(), x, y, z, o)
-		return SONLINE
-	case EBREAK:
-		c.owner.DestroySelf()
-		return fsm.STOP
-	case ETIMER:
-		c.Idle++
-		if c.Idle > 60 {
-			c.owner.Error(define.ERR_CHOOSE_TIMEOUT)
-			return SLOGGED
-		}
-	default:
-		c.owner.ctx.Core.LogWarnf("choose role state receive error event(%d)", event)
+func (s *ChooseRole) Init(r fsm.StateRegister) {
+	r.AddHandle(ECHOOSED, s.OnChoose)
+	r.AddHandle(EBREAK, s.OnBreak)
+}
+
+func (s *ChooseRole) OnTimer() string {
+	s.Idle++
+	if s.Idle > 60 {
+		s.owner.Error(define.ERR_CHOOSE_TIMEOUT)
+		return SLOGGED
 	}
+	return ""
+}
+
+func (s *ChooseRole) OnChoose(event int, param interface{}) string {
+	args := param.([2]interface{})
+	errcode := args[0].(int32)
+	if errcode != 0 {
+		s.owner.Error(errcode)
+		return SLOGGED
+	}
+	player := args[1].(gameobject.GameObject)
+	if player == nil {
+		s.owner.Error(define.ERR_CHOOSE_ROLE)
+		return SLOGGED
+	}
+
+	ls, ok := player.(LandInfo)
+	if !ok {
+		s.owner.DestroySelf()
+		s.owner.ctx.Core.LogErr("entity not define landpos ", s.owner.ctx.mainEntity)
+		return ""
+	}
+	s.owner.ctx.Core.LogDebug("enter game")
+	s.owner.SetGameObject(player)
+	x, y, z, o := ls.LandPosXYZOrient()
+	s.owner.SetLandInfo(ls.LandScene(), x, y, z, o)
+	return SONLINE
+}
+
+func (s *ChooseRole) OnBreak(event int, param interface{}) string {
+	s.owner.DestroySelf()
+	return fsm.STOP
+}
+
+func (s *ChooseRole) OnHandle(event int, param interface{}) string {
+	s.owner.ctx.Core.LogWarnf("choose role state receive error event(%d)", event)
 	return ""
 }

@@ -14,11 +14,15 @@ func newIdle(o *GameScene) *Idle {
 	return s
 }
 
-func (s *Idle) Handle(event int, param interface{}) string {
-	switch event {
-	case ETIMER:
-		s.Idle++
-	default:
-	}
+func (s *Idle) Init(r fsm.StateRegister) {
+	//r.AddHandle(LOGIN, s.OnLogin)
+}
+
+func (s *Idle) OnTimer() string {
+	s.Idle++
+	return ""
+}
+
+func (s *Idle) OnHandle(event int, param interface{}) string {
 	return ""
 }

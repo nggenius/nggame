@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	configPath = flag.String("p", "../config/", "config path")
+	configPath = flag.String("p", "../../config/", "config path")
 	appdef     = flag.String("a", "/app.cfg", "app config file")
 	srvdef     = flag.String("s", "/servers.cfg", "services config file")
 )

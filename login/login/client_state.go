@@ -19,9 +19,9 @@ const (
 
 func initState(s *Session) *fsm.FSM {
 	fsm := fsm.NewFSM()
-	fsm.Register(SIDLE, &Idle{owner: s})
-	fsm.Register(SLOGGING, &Logging{owner: s})
-	fsm.Register(SLOGGED, &Logged{owner: s})
+	fsm.Register(SIDLE, NewIdle(s))
+	fsm.Register(SLOGGING, NewLogging(s))
+	fsm.Register(SLOGGED, NewLogged(s))
 	fsm.Start(SIDLE)
 	return fsm
 }

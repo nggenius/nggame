@@ -74,7 +74,7 @@ func (l *LoginModule) Shut() {
 func (l *LoginModule) PerSecondCheck(d time.Duration) {
 	for _, c := range l.sessions {
 		if !c.delete {
-			c.Dispatch(TIMER, nil)
+			c.Timeout()
 		}
 	}
 }
