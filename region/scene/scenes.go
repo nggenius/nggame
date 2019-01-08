@@ -36,14 +36,14 @@ func (s *Scenes) CreateScene(r define.Region) (rpc.Mailbox, error) {
 	gamescene := scene.(*GameScene)
 	gamescene.factory = f
 	gamescene.region = r
-
+	gamescene.ctx = s.ctx
 	s.scenes[r.Id] = gamescene
 
-	return gamescene.Scene.ObjId(), nil
+	return gamescene.spirit.ObjId(), nil
 }
 
 func (s *Scenes) UpdateAllScene(t time.Duration) {
 	for k := range s.scenes {
-		s.scenes[k].Update(t)
+		s.scenes[k].scene.Update(t)
 	}
 }

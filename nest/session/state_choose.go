@@ -45,7 +45,7 @@ func (s *ChooseRole) OnChoose(event int, param interface{}) string {
 		return SLOGGED
 	}
 
-	ls, ok := player.(LandInfo)
+	ls, ok := player.Spirit().Data().(LandInfo)
 	if !ok {
 		s.owner.DestroySelf()
 		s.owner.ctx.Core.LogErr("entity not define landpos ", s.owner.ctx.mainEntity)

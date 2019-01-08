@@ -41,7 +41,7 @@ func (a *Account) RegisterCallback(s rpc.Servicer) {
 func (a *Account) Logged(sender, _ rpc.Mailbox, msg *protocol.Message) (errcode int32, reply *protocol.Message) {
 	m := protocol.NewMessageReader(msg)
 	var account string
-	m.Read(&account)
+	m.Get(&account)
 	token := a.ctx.cache.Put(account)
 	return protocol.Reply(protocol.TINY, token)
 }
@@ -93,8 +93,8 @@ func (a *Account) SaveRole(session *Session, stype int) error {
 		a.OnSaveRole,
 		"Store.SaveRole",
 		int8(stype),
-		player.DBId(),
-		player.Archive(),
+		player.Data().DBId(),
+		player.Data().Archive(),
 	)
 
 	return err
@@ -213,7 +213,7 @@ func (a *Account) OnChooseRole(p interface{}, err *rpc.Error, ar *utils.LoadArch
 		return
 	}
 
-	gameobject.SetCap(0)
+	gameobject.Behavior().SetCap(0)
 
 	player := gameobject.Spirit()
 	if player == nil {
@@ -222,7 +222,7 @@ func (a *Account) OnChooseRole(p interface{}, err *rpc.Error, ar *utils.LoadArch
 		return
 	}
 
-	err1 = ar.Read(player.Archive())
+	err1 = ar.Get(player.Data().Archive())
 	if err1 != nil {
 		a.ctx.factory.Destroy(inst)
 		a.ctx.Core.LogErr(err1)
@@ -289,7 +289,7 @@ func (a *Account) OnFindRegion(param interface{}, replyerr *rpc.Error, ar *utils
 	}
 
 	var w rpc.Mailbox
-	if err := ar.Read(&w); err != nil {
+	if err := ar.Get(&w); err != nil {
 		panic(err)
 	}
 
@@ -298,11 +298,15 @@ func (a *Account) OnFindRegion(param interface{}, replyerr *rpc.Error, ar *utils
 }
 
 func (p *Account) EnterRegion(s *Session, r rpc.Mailbox) error {
-	data, err := p.ctx.factory.Encode(s.gameobject.Spirit().ObjId())
+	src := s.gameobject.Spirit().ObjId()
+	data, err := p.ctx.factory.Encode(src)
 	if err != nil {
+
+		p.ctx.Core.LogErr("encode player failed, ", err)
+
 		return err
 	}
-	return p.ctx.Core.MailtoAndCallback(nil, &r, "GameScene.AddPlayer", p.OnEnterRegion, s.id, data)
+	return p.ctx.Core.MailtoAndCallback(&src, &r, "GameScene.EnterRegion", p.OnEnterRegion, s.id, data)
 }
 
 func (p *Account) OnEnterRegion(param interface{}, replyerr *rpc.Error, ar *utils.LoadArchive) {
@@ -318,4 +322,44 @@ func (p *Account) OnEnterRegion(param interface{}, replyerr *rpc.Error, ar *util
 	}
 	p.ctx.Core.LogInfo("enter session ", param, replyerr)
 	session.Dispatch(EONLINE, nil)
+}
+
+func (p *Account) LeaveRegion(s *Session) error {
+	src := s.gameobject.Spirit().ObjId()
+	return p.ctx.Core.MailtoAndCallback(&src, &s.region, "GameScene.LeaveRegion", p.OnLeaveRegion, s.id)
+}
+
+func (p *Account) OnLeaveRegion(param interface{}, replyerr *rpc.Error, ar *utils.LoadArchive) {
+	session := p.ctx.FindSession(param.(uint64))
+	if session == nil {
+		p.ctx.Core.LogErr("session not found,", param)
+		return
+	}
+
+	var keep time.Duration
+	err := ar.Get(&keep)
+	if err != nil {
+		panic(err)
+	}
+	var data []byte
+	err = ar.Get(&data)
+	if err != nil {
+		panic(err)
+	}
+
+	session.Dispatch(EREMAINTIME, [2]interface{}{keep, data})
+}
+
+func (p *Account) RemovePlayer(s *Session) error {
+	src := s.gameobject.Spirit().ObjId()
+	return p.ctx.Core.MailtoAndCallback(&src, &s.region, "GameScene.RemovePlayer", p.OnRemovePlayer, s.id)
+}
+
+func (p *Account) OnRemovePlayer(param interface{}, replyerr *rpc.Error, ar *utils.LoadArchive) {
+	session := p.ctx.FindSession(param.(uint64))
+	if session == nil {
+		p.ctx.Core.LogErr("session not found,", param)
+		return
+	}
+	session.Dispatch(EREGIONREMOVE, nil)
 }

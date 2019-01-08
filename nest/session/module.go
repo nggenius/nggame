@@ -52,7 +52,7 @@ func (s *SessionModule) Init() bool {
 	opt := s.Core.Option()
 	s.mainEntity = opt.Args.String("MainEntity")
 	s.role = opt.Args.String("Role")
-	s.offlinetime = time.Second * time.Duration(opt.Args.MustInt("OfflineRemain", 0))
+	s.offlinetime = time.Second * time.Duration(opt.Args.MustInt("OfflineRemain", 180))
 	s.saveTimeout = time.Second * time.Duration(opt.Args.MustInt("SaveTimeout", 60))
 	store := s.Core.MustModule("Store").(*store.StoreModule)
 	if store == nil {

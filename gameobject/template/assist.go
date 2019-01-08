@@ -3,16 +3,15 @@ package template
 import "github.com/nggenius/nggame/gameobject"
 
 type AssistObject struct {
-	*gameobject.BaseObject
+	gameobject.BaseBehavior
 }
 
 func NewAssistObject() *AssistObject {
 	ro := new(AssistObject)
-	ro.BaseObject = new(gameobject.BaseObject)
 	return ro
 }
 
-func (r *AssistObject) ObjectType() int {
+func (r *AssistObject) GameObjectType() int {
 	return gameobject.OBJECT_ASSIST
 }
 

@@ -14,15 +14,24 @@ func newIdle(o *SpaceManage) *Idle {
 	return s
 }
 
-func (s *Idle) Handle(event int, param interface{}) string {
-	switch event {
-	case ETIMER:
-		s.Idle++
-	case EREGION_RESP:
-		if s.owner.hasAllReady() {
-			return SCREATE
-		}
-	default:
+func (s *Idle) Init(r fsm.StateRegister) {
+	r.AddHandle(EREGION_RESP, s.OnCheck)
+}
+
+func (s *Idle) OnTimer() string {
+	s.Idle++
+	return ""
+}
+
+func (s *Idle) OnCheck(event int, param interface{}) string {
+	if s.owner.hasAllReady() {
+		return SCREATE
 	}
+
+	return ""
+}
+
+func (s *Idle) Handle(event int, param interface{}) string {
+	s.owner.ctx.Core.LogWarnf("idle state receive error event(%d)", event)
 	return ""
 }

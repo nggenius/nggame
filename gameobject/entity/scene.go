@@ -7,7 +7,6 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"github.com/nggenius/ngmodule/object"
 
 	"github.com/mysll/toolkit"
 )
@@ -17,15 +16,15 @@ var _ = toolkit.ParseNumber
 
 // Scene archive
 type SceneArchive struct {
-	root object.Object `xorm:"-"`
-	flag int           `xorm:"-"`
+	o    *Scene `xorm:"-"` // owner
+	flag int    `xorm:"-"`
 
 	Id int64
 }
 
 // Scene archive construct
-func NewSceneArchive(root object.Object) *SceneArchive {
-	archive := &SceneArchive{root: root}
+func NewSceneArchive(o *Scene) *SceneArchive {
+	archive := &SceneArchive{o: o}
 
 	return archive
 }
@@ -67,22 +66,22 @@ func (a *SceneArchiveBak) DBId() int64 {
 
 // Scene attr
 type SceneAttr struct {
-	root object.Object
+	o *Scene //owner
 
 	Name     string // 场景名
 	Resource string // 资源
 }
 
 // Scene attr construct
-func NewSceneAttr(root object.Object) *SceneAttr {
-	attr := &SceneAttr{root: root}
+func NewSceneAttr(o *Scene) *SceneAttr {
+	attr := &SceneAttr{o: o}
 
 	return attr
 }
 
 // Scene
 type Scene struct {
-	object.ObjectWitness
+	w       Witness
 	archive *SceneArchive // archive
 	attr    *SceneAttr    // attr
 }
@@ -92,8 +91,11 @@ func NewScene() *Scene {
 	o := &Scene{}
 	o.archive = NewSceneArchive(o)
 	o.attr = NewSceneAttr(o)
-	o.Witness(o)
 	return o
+}
+
+func (o *Scene) SetWitness(w Witness) {
+	o.w = w
 }
 
 // Scene store
@@ -136,8 +138,8 @@ func (o *Scene) Attr() interface{} {
 
 // set Name 场景名
 func (o *Scene) SetName(name string) {
-	if o.Dummy() && !o.Sync() {
-		o.UpdateAttr("Name", name, nil)
+	if o.w.Dummy() && !o.w.Sync() {
+		o.w.UpdateAttr("Name", name, nil)
 		return
 	}
 	if o.attr.Name == name {
@@ -145,7 +147,7 @@ func (o *Scene) SetName(name string) {
 	}
 	old := o.attr.Name
 	o.attr.Name = name
-	o.UpdateAttr("Name", name, old)
+	o.w.UpdateAttr("Name", name, old)
 }
 
 // get Name 场景名
@@ -155,8 +157,8 @@ func (o *Scene) Name() string {
 
 // set Resource 资源
 func (o *Scene) SetResource(resource string) {
-	if o.Dummy() && !o.Sync() {
-		o.UpdateAttr("Resource", resource, nil)
+	if o.w.Dummy() && !o.w.Sync() {
+		o.w.UpdateAttr("Resource", resource, nil)
 		return
 	}
 	if o.attr.Resource == resource {
@@ -164,7 +166,7 @@ func (o *Scene) SetResource(resource string) {
 	}
 	old := o.attr.Resource
 	o.attr.Resource = resource
-	o.UpdateAttr("Resource", resource, old)
+	o.w.UpdateAttr("Resource", resource, old)
 }
 
 // get Resource 资源
@@ -188,9 +190,9 @@ func (o *Scene) AttrType(name string) string {
 func (o *Scene) Expose(name string) int {
 	switch name {
 	case "Name":
-		return object.EXPOSE_NONE
+		return EXPOSE_NONE
 	case "Resource":
-		return object.EXPOSE_NONE
+		return EXPOSE_NONE
 	default:
 		panic("unknown")
 	}
@@ -278,11 +280,33 @@ func (o *Scene) GobDecode(buf []byte) error {
 	return nil
 }
 
+// TableName 获取DB表名
+func (o *Scene) TableName() string {
+	return ""
+}
+
+// register helper function
+func (o *Scene) new() DataObject {
+	return NewScene()
+}
+
+func (o *Scene) makeArchive() interface{} {
+	return &SceneArchive{}
+}
+
+func (o *Scene) makeArchiveSlice() interface{} {
+	return []*SceneArchive{}
+}
+
+const (
+	SCENE = "entity.Scene"
+)
+
 // gob register
 func init() {
 	gob.Register(&Scene{})
 	gob.Register(&SceneArchive{})
 	gob.Register([]*Scene{})
 	gob.Register([]*SceneArchive{})
-	registObject("entity.Scene", func() object.Object { return NewScene() })
+	registObject("entity.Scene", &Scene{})
 }

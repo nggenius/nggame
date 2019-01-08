@@ -25,7 +25,7 @@ type Session struct {
 	landscene          int64
 	lx, ly, lz, orient float64
 	region             rpc.Mailbox
-	enterregion        bool
+	autoenter          bool
 	offlineTimeout     time.Duration
 	remainTime         time.Duration
 }
@@ -35,6 +35,7 @@ func NewSession(id uint64, ctx *SessionModule) *Session {
 	s.ctx = ctx
 	s.id = id
 	s.FSM = initState(s)
+	s.autoenter = true
 	return s
 }
 
@@ -52,7 +53,7 @@ func (s *Session) SetGameObject(g gameobject.GameObject) {
 	}
 	if s.Mailbox != nil {
 		tr := gameobject.NewTransport(s.ctx.Core, *s.Mailbox)
-		g.SetTransport(tr)
+		g.Behavior().SetTransport(tr)
 	}
 	s.gameobject = g
 }
@@ -128,13 +129,30 @@ func (s *Session) SaveRole(stype int) error {
 	return s.ctx.account.SaveRole(s, stype)
 }
 
+func (s *Session) SyncData(data []byte) error {
+	f := s.gameobject.Factory()
+	return f.Sync(s.gameobject, data)
+}
+
 func (s *Session) FindRegion() error {
 	return s.ctx.account.FindRegion(s, s.landscene, s.lx, s.ly, s.lz)
 }
 
 func (s *Session) EnterRegion(r rpc.Mailbox) error {
 	s.region = r
-	return s.ctx.account.EnterRegion(s, r)
+	err := s.ctx.account.EnterRegion(s, r)
+	if err != nil {
+		s.ctx.Core.LogErr("enter region failed")
+	}
+	return err
+}
+
+func (s *Session) LevelRegion() error {
+	return s.ctx.account.LeaveRegion(s)
+}
+
+func (s *Session) RegionRemove() error {
+	return s.ctx.account.RemovePlayer(s)
 }
 
 func (s *Session) Error(errcode int32) {

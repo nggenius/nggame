@@ -26,7 +26,7 @@ func (s *Online) Init(r fsm.StateRegister) {
 }
 
 func (s *Online) Enter() {
-	if s.owner.enterregion {
+	if s.owner.autoenter {
 		s.owner.FindRegion()
 		s.online = false
 		return

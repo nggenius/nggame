@@ -3,14 +3,20 @@ package gameobject
 import (
 	"time"
 
-	"github.com/nggenius/ngengine/core/service"
+	"github.com/nggenius/nggame/gameobject/entity"
 
-	"github.com/nggenius/ngmodule/object"
+	"github.com/nggenius/ngengine/core/service"
 )
 
+type ComponentInfo struct {
+	started   bool
+	comp      Component
+	useUpdate bool
+}
+
 type Component interface {
-	SetOwner(GameObject)
-	Owner() GameObject
+	SetGameObject(GameObject)
+	GameObject() GameObject
 	Create()
 	Start()
 	Update(delta time.Duration)
@@ -20,28 +26,28 @@ type Component interface {
 }
 
 type GameComponent struct {
-	owner  GameObject
-	enable bool
+	gameobject GameObject
+	enable     bool
 }
 
 // SetGameObject 设置当前附加的对象，由GameObject调用
-func (g *GameComponent) SetOwner(obj GameObject) {
-	g.owner = obj
+func (g *GameComponent) SetGameObject(o GameObject) {
+	g.gameobject = o
 }
 
 // GameObject 获取当前附加的对象
-func (g *GameComponent) Owner() GameObject {
-	return g.owner
+func (g *GameComponent) GameObject() GameObject {
+	return g.gameobject
 }
 
 // Core
 func (g *GameComponent) Core() service.CoreAPI {
-	return g.owner.Spirit().Core()
+	return g.gameobject.Core()
 }
 
 // Spirit 获取数据对象
-func (g *GameComponent) Spirit() object.Object {
-	return g.owner.Spirit()
+func (g *GameComponent) Spirit() *entity.Entity {
+	return g.gameobject.Spirit()
 }
 
 // Enable 获取当前组件的开启状态

@@ -8,20 +8,19 @@ import (
 )
 
 type RoleObject struct {
-	*gameobject.BaseObject
+	gameobject.BaseBehavior
 	transform *component.Transform
 	visible   *component.Visible
 }
 
 func NewRoleObject() *RoleObject {
 	ro := new(RoleObject)
-	ro.BaseObject = new(gameobject.BaseObject)
 	ro.transform = component.NewTransform()
 	ro.visible = component.NewVisible()
 	return ro
 }
 
-func (r *RoleObject) ObjectType() int {
+func (r *RoleObject) GameObjectType() int {
 	return gameobject.OBJECT_PLAYER
 }
 

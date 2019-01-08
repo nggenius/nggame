@@ -270,7 +270,7 @@ func (s *SpaceManage) onCreateRegion(p interface{}, rpcerr *rpc.Error, ar *utils
 	}
 
 	var mb rpc.Mailbox
-	err := ar.Read(&mb)
+	err := ar.Get(&mb)
 	if err != nil {
 		s.ctx.Core.LogErr("get mailbox error")
 		return

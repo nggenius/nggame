@@ -6,18 +6,17 @@ import (
 )
 
 type ItemObject struct {
-	*gameobject.BaseObject
+	gameobject.BaseBehavior
 	visible *component.Visible
 }
 
 func NewItemObject() *ItemObject {
 	ro := new(ItemObject)
-	ro.BaseObject = new(gameobject.BaseObject)
 	ro.visible = component.NewVisible()
 	return ro
 }
 
-func (r *ItemObject) ObjectType() int {
+func (r *ItemObject) GameObjectType() int {
 	return gameobject.OBJECT_ITEM
 }
 

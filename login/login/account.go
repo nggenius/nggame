@@ -115,7 +115,7 @@ func (a *Account) OnNestLogged(p interface{}, e *rpc.Error, ar *utils.LoadArchiv
 	}
 
 	var token string
-	ar.Read(&token)
+	ar.Get(&token)
 
 	session.Dispatch(NEST_RESULT, [2]interface{}{rpc.OK, token})
 }

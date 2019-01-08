@@ -13,6 +13,8 @@ type Leaving struct {
 	Idle        int32
 	saveTimeout time.Time
 	errors      int
+	saved       bool
+	removed     bool
 }
 
 func newLeaving(o *Session) *Leaving {
@@ -23,6 +25,7 @@ func newLeaving(o *Session) *Leaving {
 
 func (s *Leaving) Init(r fsm.StateRegister) {
 	r.AddHandle(ESTORED, s.OnStored)
+	r.AddHandle(EREGIONREMOVE, s.OnRegionRemove)
 }
 
 func (s *Leaving) Enter() {
@@ -30,7 +33,7 @@ func (s *Leaving) Enter() {
 }
 
 func (s *Leaving) OnTimer() string {
-	if time.Now().Sub(s.saveTimeout) > 0 {
+	if !s.saved && time.Now().Sub(s.saveTimeout) > 0 {
 		s.owner.SaveRole(store.STORE_SAVE_OFFLINE)
 		s.saveTimeout = time.Now().Add(s.owner.ctx.saveTimeout)
 		s.owner.ctx.Core.LogWarn("save role timeout")
@@ -42,9 +45,22 @@ func (s *Leaving) OnStored(event int, param interface{}) string {
 	args := param.([2]interface{})
 	if ok := args[0].(int32); ok == 0 {
 		s.owner.Break()
-		s.owner.DestroySelf()
+		s.saved = true
+		if s.removed {
+			s.owner.DestroySelf()
+			return fsm.STOP
+		}
 	} else {
 		s.owner.ctx.Core.LogWarn("save player failed")
+	}
+	return ""
+}
+
+func (s *Leaving) OnRegionRemove(event int, param interface{}) string {
+	s.removed = true
+	if s.saved {
+		s.owner.DestroySelf()
+		return fsm.STOP
 	}
 	return ""
 }

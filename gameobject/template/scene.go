@@ -7,19 +7,18 @@ import (
 )
 
 type SceneObject struct {
-	*gameobject.BaseObject
+	gameobject.BaseBehavior
 }
 
 func NewSceneObject() *SceneObject {
 	so := new(SceneObject)
-	so.BaseObject = new(gameobject.BaseObject)
 	return so
 }
 
 func (s *SceneObject) OnCreate() {
 }
 
-func (s *SceneObject) ObjectType() int {
+func (s *SceneObject) GameObjectType() int {
 	return gameobject.OBJECT_SCENE
 }
 

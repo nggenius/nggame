@@ -6,20 +6,19 @@ import (
 )
 
 type NpcObject struct {
-	*gameobject.BaseObject
+	gameobject.BaseBehavior
 	transform *component.Transform
 	visible   *component.Visible
 }
 
 func NewNpcObject() *NpcObject {
 	ro := new(NpcObject)
-	ro.BaseObject = new(gameobject.BaseObject)
 	ro.transform = component.NewTransform()
 	ro.visible = component.NewVisible()
 	return ro
 }
 
-func (r *NpcObject) ObjectType() int {
+func (r *NpcObject) GameObjectType() int {
 	return gameobject.OBJECT_NPC
 }
 

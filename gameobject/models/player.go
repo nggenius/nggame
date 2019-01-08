@@ -4,7 +4,6 @@ import (
 	"github.com/nggenius/nggame/gameobject"
 	"github.com/nggenius/nggame/gameobject/entity"
 	"github.com/nggenius/nggame/gameobject/template"
-	"github.com/nggenius/ngmodule/object"
 )
 
 const (
@@ -12,23 +11,28 @@ const (
 )
 
 type GamePlayer struct {
-	*template.RoleObject
-	*entity.Player
+	gameobject.BaseObject
+	role   *template.RoleObject
+	spirit *entity.Entity
 }
 
 func (p *GamePlayer) Ctor() {
-	p.Player = entity.NewPlayer()
-	p.RoleObject = template.NewRoleObject()
+	p.role = template.NewRoleObject()
+	p.spirit = entity.NewEntity(entity.PLAYER)
 }
 
-func (p *GamePlayer) Object() object.Object {
-	return p.Player
+func (p *GamePlayer) Spirit() *entity.Entity {
+	return p.spirit
 }
 
-func (p *GamePlayer) GameObject() gameobject.GameObject {
-	return p.RoleObject
+func (p *GamePlayer) Behavior() gameobject.Behavior {
+	return p.role
+}
+
+func (p *GamePlayer) ObjectType() string {
+	return GAME_PLAYER
 }
 
 func (p *GamePlayer) EntityType() string {
-	return GAME_PLAYER
+	return entity.PLAYER
 }

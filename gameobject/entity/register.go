@@ -2,17 +2,21 @@ package entity
 
 import (
 	"github.com/nggenius/nggame/gameobject/entity/inner"
-	"github.com/nggenius/ngmodule/object"
 )
 
 const (
-	ACCOUNT       = "inner.Account"
-	ROLE          = "inner.Role"
-	DB_PLAYER     = "entity.Player"
-	DB_PLAYER_BAK = "entity.PlayerBak"
+	ACCOUNT = "inner.Account"
+	ROLE    = "inner.Role"
 )
 
-var objreg = make(map[string]func() object.Object)
+type createhelper interface {
+	new() DataObject
+	makeArchive() interface{}
+	makeArchiveSlice() interface{}
+	TableName() string
+}
+
+var objreg = make(map[string]createhelper)
 
 type Register interface {
 	Register(name string, obj interface{}, objslice interface{}) error
@@ -21,21 +25,24 @@ type Register interface {
 func RegisterToDB(r Register) {
 	r.Register(ACCOUNT, &inner.Account{}, []*inner.Account{})
 	r.Register(ROLE, &inner.Role{}, []*inner.Role{})
-	r.Register(DB_PLAYER, &PlayerArchive{}, []*PlayerArchive{})
-	r.Register(DB_PLAYER_BAK, &PlayerArchiveBak{}, []*PlayerArchiveBak{})
+	for k, v := range objreg {
+		if v.TableName() != "" {
+			r.Register(k, v.makeArchive(), v.makeArchiveSlice())
+		}
+	}
 }
 
-func registObject(typ string, f func() object.Object) {
+func registObject(typ string, c createhelper) {
 	if _, has := objreg[typ]; has {
 		panic("register object twice")
 	}
 
-	objreg[typ] = f
+	objreg[typ] = c
 }
 
-func Create(typ string) object.Object {
+func Create(typ string) DataObject {
 	if c, ok := objreg[typ]; ok {
-		return c()
+		return c.new()
 	}
 	return nil
 }

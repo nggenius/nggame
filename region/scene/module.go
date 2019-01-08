@@ -10,16 +10,18 @@ import (
 
 type SceneModule struct {
 	service.Module
-	creater *RegionCreate
-	object  *object.ObjectModule
-	timer   *timer.TimerModule
-	scenes  *Scenes
+	creater  *RegionCreate
+	object   *object.ObjectModule
+	timer    *timer.TimerModule
+	scenes   *Scenes
+	keeptime time.Duration // 断线保存时间
 }
 
 func New() *SceneModule {
 	m := new(SceneModule)
 	m.creater = NewRegionCreate(m)
 	m.scenes = NewScenes(m)
+	m.keeptime = time.Second * 30
 	return m
 }
 

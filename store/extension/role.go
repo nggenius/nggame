@@ -45,11 +45,11 @@ func (r *Role) CreateRole(sender, _ rpc.Mailbox, msg *protocol.Message) (errcode
 	m := protocol.NewMessageReader(msg)
 	role := new(inner.Role)
 	player := r.store.CreateDBObj(r.entity)
-	err := m.Read(role)
+	err := m.Get(role)
 	if err != nil {
 		return protocol.ReplyError(protocol.TINY, share.ERR_ARGS_ERROR, err.Error())
 	}
-	err = m.Read(player)
+	err = m.Get(player)
 	if err != nil {
 		return protocol.ReplyError(protocol.TINY, share.ERR_ARGS_ERROR, err.Error())
 	}

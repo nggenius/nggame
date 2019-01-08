@@ -8,7 +8,6 @@ import(
     "encoding/json"
 	"encoding/gob"
     "fmt"
-	"github.com/nggenius/ngmodule/object"
 
     "github.com/mysll/toolkit"
 )
@@ -59,7 +58,7 @@ type {{$.Name}}{{.Name}}_c struct {
 
 // record {{.Name}} {{.Desc}}
 type {{$.Name}}{{.Name}}_r struct {
-	root object.Object
+	o   	*{{$.Name}} // owner
 	data    [{{.Table.MaxRows}}]*{{$.Name}}{{.Name}}_c
     Row     []*{{$.Name}}{{.Name}}_c
 }
@@ -72,8 +71,8 @@ type {{$.Name}}{{.Name}}Json struct{
 }
 
 // record {{.Name}} construct
-func New{{$.Name}}{{.Name}}(root object.Object) *{{$.Name}}{{.Name}}_r {
-	{{tolower .Name}} := &{{$.Name}}{{.Name}}_r{root:root}
+func New{{$.Name}}{{.Name}}(o *{{$.Name}}) *{{$.Name}}{{.Name}}_r {
+	{{tolower .Name}} := &{{$.Name}}{{.Name}}_r{o:o}
 	{{tolower .Name}}.Row = {{tolower .Name}}.data[:0]
 	return {{tolower .Name}}
 }
@@ -102,8 +101,8 @@ func (r *{{$.Name}}{{$pname}}_r) {{.Name}}(rownum int) ({{.Type}}, error) {
 
 // set {{.Name}}
 func (r *{{$.Name}}{{$pname}}_r) Set{{.Name}}(rownum int, {{tolower .Name}} {{.Type}}) error {
-	if r.root != nil && r.root.Dummy() && !r.root.Sync() {
-		r.root.ChangeTable("{{$pname}}", rownum, {{$index}}, {{tolower .Name}})
+	if r.o.w != nil && r.o.w.Dummy() && !r.o.w.Sync() {
+		r.o.w.ChangeTable("{{$pname}}", rownum, {{$index}}, {{tolower .Name}})
 		return nil
 	}
 	if rownum < 0 || rownum >= len(r.Row) {
@@ -111,8 +110,8 @@ func (r *{{$.Name}}{{$pname}}_r) Set{{.Name}}(rownum int, {{tolower .Name}} {{.T
 	}
 	if r.Row[rownum].{{.Name}} != {{tolower .Name}} {
 		r.Row[rownum].{{.Name}} = {{tolower .Name}}
-		if r.root != nil {
-			r.root.ChangeTable("{{$pname}}", rownum, {{$index}}, {{tolower .Name}})
+		if r.o.w != nil {
+			r.o.w.ChangeTable("{{$pname}}", rownum, {{$index}}, {{tolower .Name}})
 		}
 	}
 	return nil
@@ -121,26 +120,18 @@ func (r *{{$.Name}}{{$pname}}_r) Set{{.Name}}(rownum int, {{tolower .Name}} {{.T
 
 // set row value
 func (r *{{$.Name}}{{.Name}}_r) SetRowValue(rownum int {{range .Table.Cols}}, {{tolower .Name}} {{.Type}} {{end}} ) error {
-	if r.root != nil && r.root.Dummy() && !r.root.Sync() {
-		r.root.SetTableRowValue("{{$pname}}", rownum {{range .Table.Cols}}, {{tolower .Name}} {{end}} )
+	if r.o.w != nil && r.o.w.Dummy() && !r.o.w.Sync() {
+		r.o.w.SetTableRowValue("{{$pname}}", rownum {{range .Table.Cols}}, {{tolower .Name}} {{end}} )
 		return nil
 	}
 
 	if rownum < 0 || rownum >= len(r.Row) {
 		return fmt.Errorf("row num error")
 	}
-    /*{{range $index, $col := .Table.Cols}}{{with $col}}
-	if r.Row[rownum].{{.Name}} != {{tolower .Name}} {
-		r.Row[rownum].{{.Name}} = {{tolower .Name}}
-		if r.root != nil {
-			r.root.ChangeTable("{{$pname}}", rownum, {{$index}}, {{tolower .Name}})
-		} {{end}}
-	} {{end}}
-	*/
 	{{range $index, $col := .Table.Cols}}{{with $col}}
 	r.Row[rownum].{{.Name}} = {{tolower .Name}}{{end}}{{end}}
-	if r.root != nil {
-		r.root.SetTableRowValue("{{$pname}}", rownum {{range .Table.Cols}}, {{tolower .Name}} {{end}} )
+	if r.o.w != nil {
+		r.o.w.SetTableRowValue("{{$pname}}", rownum {{range .Table.Cols}}, {{tolower .Name}} {{end}} )
 	}
 	return nil
 }
@@ -158,8 +149,8 @@ func (r *{{$.Name}}{{.Name}}_r) RowValue(rownum int) ({{range .Table.Cols}}{{.Ty
 
 // add row
 func (r *{{$.Name}}{{.Name}}_r) AddRow(rownum int) (int, error) {
-	if r.root != nil && r.root.Dummy() && !r.root.Sync() {
-		r.root.AddTableRow("{{$pname}}", rownum )
+	if r.o.w != nil && r.o.w.Dummy() && !r.o.w.Sync() {
+		r.o.w.AddTableRow("{{$pname}}", rownum )
 		return -1, nil
 	}
 	if len(r.Row) > cap(r.data) { // full
@@ -175,23 +166,23 @@ func (r *{{$.Name}}{{.Name}}_r) AddRow(rownum int) (int, error) {
 	r.Row = r.data[:size+1]
 	if rownum == -1 || rownum == size {
 		r.Row[size] = row{{if ne $expose ""}}
-		if r.root != nil {
-			r.root.AddTableRow("{{$pname}}", rownum)
+		if r.o.w != nil {
+			r.o.w.AddTableRow("{{$pname}}", rownum)
 		} {{end}}
 		return size, nil
 	}
 	copy(r.Row[rownum+1:], r.Row[rownum:])
 	r.Row[rownum] = row	
-	if r.root != nil {
-		r.root.AddTableRow("{{$pname}}", rownum)
+	if r.o.w != nil {
+		r.o.w.AddTableRow("{{$pname}}", rownum)
 	}
 	return rownum, nil
 }
 
 // add row value
 func (r *{{$.Name}}{{.Name}}_r) AddRowValue(rownum int {{range .Table.Cols}}, {{tolower .Name}} {{.Type}} {{end}} ) (int, error) {
-	if r.root != nil && r.root.Dummy() && !r.root.Sync() {
-		r.root.AddTableRowValue("{{$pname}}", rownum {{range .Table.Cols}}, {{tolower .Name}} {{end}})
+	if r.o.w != nil && r.o.w.Dummy() && !r.o.w.Sync() {
+		r.o.w.AddTableRowValue("{{$pname}}", rownum {{range .Table.Cols}}, {{tolower .Name}} {{end}})
 		return -1, nil
 	}
 	if len(r.Row) > cap(r.data) { // full
@@ -207,23 +198,23 @@ func (r *{{$.Name}}{{.Name}}_r) AddRowValue(rownum int {{range .Table.Cols}}, {{
 	r.Row = r.data[:size+1]
 	if rownum == -1 || rownum == size {
 		r.Row[size] = row
-		if r.root != nil {
-			r.root.AddTableRowValue("{{$pname}}", rownum {{range .Table.Cols}}, {{tolower .Name}} {{end}} )
+		if r.o.w != nil {
+			r.o.w.AddTableRowValue("{{$pname}}", rownum {{range .Table.Cols}}, {{tolower .Name}} {{end}} )
 		} 
 		return size, nil
 	}
 	copy(r.Row[rownum+1:], r.Row[rownum:])
 	r.Row[rownum] = row	
-	if r.root != nil {
-		r.root.AddTableRowValue("{{$pname}}", rownum {{range .Table.Cols}}, {{tolower .Name}} {{end}} )
+	if r.o.w != nil {
+		r.o.w.AddTableRowValue("{{$pname}}", rownum {{range .Table.Cols}}, {{tolower .Name}} {{end}} )
 	}
 	return rownum, nil
 }
 
 // del row
 func (r *{{$.Name}}{{.Name}}_r) Del(rownum int) error {
-	if r.root != nil && r.root.Dummy() && !r.root.Sync() {
-		r.root.DelTableRow("{{$pname}}", rownum )
+	if r.o.w != nil && r.o.w.Dummy() && !r.o.w.Sync() {
+		r.o.w.DelTableRow("{{$pname}}", rownum )
 		return nil
 	}
 	if rownum < 0 || rownum >= len(r.Row) {
@@ -231,21 +222,21 @@ func (r *{{$.Name}}{{.Name}}_r) Del(rownum int) error {
 	}
 	copy(r.Row[rownum:], r.Row[rownum+1:])
 	r.Row = r.data[:len(r.Row)-1]
-	if r.root != nil {
-		r.root.DelTableRow("{{$pname}}", rownum )
+	if r.o.w != nil {
+		r.o.w.DelTableRow("{{$pname}}", rownum )
 	}	
 	return nil
 }
 
 // clear
 func (r *{{$.Name}}{{.Name}}_r) Clear() {
-	if r.root != nil && r.root.Dummy() && !r.root.Sync() {
-		r.root.ClearTable("{{$pname}}")
+	if r.o.w != nil && r.o.w.Dummy() && !r.o.w.Sync() {
+		r.o.w.ClearTable("{{$pname}}")
 		return
 	}
 	r.Row = r.data[:0]
-	if r.root != nil {
-		r.root.ClearTable("{{$pname}}")
+	if r.o.w != nil {
+		r.o.w.ClearTable("{{$pname}}")
 	}
 }
 
@@ -333,7 +324,7 @@ func (r *{{$.Name}}{{.Name}}_r) unpack(data []byte) error {
 {{end}}
 // {{.Name}} archive
 type {{.Name}}Archive struct {
-	root object.Object `xorm:"-"`
+	o  *{{.Name}} `xorm:"-"` // owner
     flag int `xorm:"-"`
 
     Id int64 {{range .Property}} {{if eq .Save "true"}}
@@ -342,10 +333,10 @@ type {{.Name}}Archive struct {
 }
 
 // {{.Name}} archive construct
-func New{{.Name}}Archive(root object.Object) *{{.Name}}Archive {
-    archive := &{{.Name}}Archive{root:root}
+func New{{.Name}}Archive(o *{{.Name}}) *{{.Name}}Archive {
+    archive := &{{.Name}}Archive{o:o}
     {{range .Property}}{{if eq .Save "true"}}
-    {{if eq .Type "tuple"}}archive.{{.Name}} = New{{$.Name}}{{.Name}}(){{else if eq .Type "table"}}archive.{{.Name}} = New{{$.Name}}{{.Name}}(root){{end}}{{end}}{{end}}
+    {{if eq .Type "tuple"}}archive.{{.Name}} = New{{$.Name}}{{.Name}}(){{else if eq .Type "table"}}archive.{{.Name}} = New{{$.Name}}{{.Name}}(o){{end}}{{end}}{{end}}
 	return archive
 }
 
@@ -387,23 +378,23 @@ func (a *{{.Name}}ArchiveBak) DBId() int64 {
 
 // {{.Name}} attr
 type {{.Name}}Attr struct{
-	root object.Object
+	o *{{.Name}} //owner
 
     {{range .Property}}{{if ne .Save "true"}}
     {{.Name}} {{if eq .Type "tuple"}}{{$.Name}}{{.Name}}_t{{else if eq .Type "table"}}{{$.Name}}{{.Name}}_r{{else}}{{.Type}}{{end}} // {{.Desc}}{{end}}{{end}}
 }
 
 // {{.Name}} attr construct
-func New{{.Name}}Attr(root object.Object) *{{.Name}}Attr {
-    attr := &{{.Name}}Attr{root:root} 
+func New{{.Name}}Attr(o *{{.Name}}) *{{.Name}}Attr {
+    attr := &{{.Name}}Attr{o:o} 
     {{range .Property}}{{if ne .Save "true"}}
-    {{if eq .Type "tuple"}}attr.{{.Name}} = New{{$.Name}}{{.Name}}(){{else if eq .Type "table"}}attr.{{.Name}} = New{{$.Name}}{{.Name}}(root){{end}}{{end}}{{end}}
+    {{if eq .Type "tuple"}}attr.{{.Name}} = New{{$.Name}}{{.Name}}(){{else if eq .Type "table"}}attr.{{.Name}} = New{{$.Name}}{{.Name}}(o){{end}}{{end}}{{end}}
 	return attr
 }
 
 // {{.Name}}
 type {{.Name}} struct{
-	object.ObjectWitness
+	w Witness
     archive *{{.Name}}Archive // archive
     attr *{{.Name}}Attr // attr
 }
@@ -413,8 +404,11 @@ func New{{.Name}}() *{{.Name}} {
     o := &{{.Name}}{}
     o.archive = New{{.Name}}Archive(o)
     o.attr = New{{.Name}}Attr(o)
-	o.Witness(o)
     return o
+}
+
+func (o *{{.Name}}) SetWitness(w Witness) {
+	o.w = w
 }
 
 // {{.Name}} store
@@ -458,8 +452,8 @@ func (o *{{.Name}}) Attr() interface{} {
 {{range .Property}}
 // set {{.Name}} {{.Desc}}
 func (o *{{$.Name}}) Set{{.Name}}( {{tolower .Name}} {{if eq .Type "tuple"}} {{$.Name}}{{.Name}}_t{{else if eq .Type "table"}} *{{$.Name}}{{.Name}}_r {{else}} {{.Type}} {{end}}){
-    {{if eq .Type "table"}} panic("{{.Name}} can't set") {{else}}if o.Dummy() && !o.Sync() {
-		{{if eq .Type "tuple"}}o.UpdateTuple("{{.Name}}", {{tolower .Name}}, nil){{else}}o.UpdateAttr("{{.Name}}", {{tolower .Name}}, nil){{end}}
+    {{if eq .Type "table"}} panic("{{.Name}} can't set") {{else}}if o.w.Dummy() && !o.w.Sync() {
+		{{if eq .Type "tuple"}}o.w.UpdateTuple("{{.Name}}", {{tolower .Name}}, nil){{else}}o.w.UpdateAttr("{{.Name}}", {{tolower .Name}}, nil){{end}}
 		return
 	}
 	{{if eq .Save "true"}}{{if eq .Type "tuple"}}	old := *o.archive.{{.Name}}
@@ -473,20 +467,20 @@ func (o *{{$.Name}}) Set{{.Name}}( {{tolower .Name}} {{if eq .Type "tuple"}} {{$
 	} 
 	old := o.attr.{{.Name}}
 	o.attr.{{.Name}} = {{tolower .Name}}{{end}} {{end}} {{end}}  {{if ne .Type "table"}}{{if eq .Type "tuple"}}	
-	o.UpdateTuple("{{.Name}}", {{tolower .Name}}, old) {{else}}
-	o.UpdateAttr("{{.Name}}", {{tolower .Name}}, old) {{end}} {{end}}
+	o.w.UpdateTuple("{{.Name}}", {{tolower .Name}}, old) {{else}}
+	o.w.UpdateAttr("{{.Name}}", {{tolower .Name}}, old) {{end}} {{end}}
 }
 {{if eq .Type "tuple"}}
 // set {{.Name}} detail
 func (o *{{$.Name}}) Set{{.Name}}{{range  .Tuple}}{{.Name}}{{end}}({{range $k, $t := .Tuple}} {{if ne $k 0}},{{end}}{{tolower $t.Name}} {{$t.Type}} {{end}}){
-	if o.Dummy()  && !o.Sync() {
+	if o.w.Dummy()  && !o.w.Sync() {
 		val := {{$.Name}}{{.Name}}_t{ {{range $k, $t := .Tuple}} {{if ne $k 0}},{{end}}{{tolower $t.Name}} {{end}} }
-		o.UpdateTuple("{{.Name}}", val, nil) 
+		o.w.UpdateTuple("{{.Name}}", val, nil) 
 		return
 	}
 	{{if eq .Save "true"}} old := *o.archive.{{.Name}} {{else}} old := *o.attr.{{.Name}} {{end}}
 	{{if eq .Save "true"}} o.archive.{{.Name}} {{else}}o.attr.{{.Name}} {{end}}.Set({{range $k, $t := .Tuple}} {{if ne $k 0}},{{end}}{{tolower $t.Name}} {{end}})
-	o.UpdateTuple("{{.Name}}", {{if eq .Save "true"}} *o.archive.{{.Name}} {{else}}*o.attr.{{.Name}} {{end}}, old) 
+	o.w.UpdateTuple("{{.Name}}", {{if eq .Save "true"}} *o.archive.{{.Name}} {{else}}*o.attr.{{.Name}} {{end}}, old) 
 }{{end}}
 
 // get {{.Name}} {{.Desc}}
@@ -514,7 +508,7 @@ func  (o *{{$.Name}}) AttrType(name string) string {
 func  (o *{{$.Name}}) Expose(name string) int {
 	switch name { {{range .Property}}
 	case "{{.Name}}":
-		return object.EXPOSE_{{if eq .Expose ""}}NONE{{else}}{{toupper .Expose}}{{end}}{{end}}
+		return EXPOSE_{{if eq .Expose ""}}NONE{{else}}{{toupper .Expose}}{{end}}{{end}}
 	default:
 		panic("unknown")
 	}
@@ -600,11 +594,35 @@ func (o *{{$.Name}}) GobDecode(buf []byte) error {
 	return nil
 }
 
+// TableName 获取DB表名
+func (o *{{$.Name}}) TableName() string {
+	return "{{.Archive}}"
+}
+
+// register helper function
+func (o *{{$.Name}}) new() DataObject {
+	return New{{$.Name}}()
+}
+
+func (o *{{$.Name}}) makeArchive() interface{} {
+	return &{{$.Name}}Archive{}
+}
+
+func (o *{{$.Name}}) makeArchiveSlice() interface{} {
+	return []*{{$.Name}}Archive{}
+}
+
+
+
+const(
+	{{toupper .Name}} = "{{.Package}}.{{.Name}}"
+)
+
 // gob register
 func init() {
 	gob.Register(&{{.Name}}{})
 	gob.Register(&{{.Name}}Archive{})
 	gob.Register([]*{{.Name}}{})
 	gob.Register([]*{{.Name}}Archive{})
-	registObject("{{.Package}}.{{.Name}}", func() object.Object{return New{{.Name}}() })
+	registObject("{{.Package}}.{{.Name}}", &{{.Name}}{} ) 
 }

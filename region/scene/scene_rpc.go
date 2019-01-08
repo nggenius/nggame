@@ -9,11 +9,13 @@ import (
 )
 
 func (s *GameScene) RegisterCallback(svr rpc.Servicer) {
-	svr.RegisterCallback("AddPlayer", s.AddPlayer)
+	svr.RegisterCallback("EnterRegion", s.EnterRegion)
+	svr.RegisterCallback("LeaveRegion", s.LeaveRegion)
+	svr.RegisterCallback("RemovePlayer", s.RemovePlayer)
 }
 
-func (s *GameScene) AddPlayer(src rpc.Mailbox, dest rpc.Mailbox, msg *protocol.Message) (int32, *protocol.Message) {
-	s.Core().LogDebug("add player")
+func (s *GameScene) EnterRegion(src rpc.Mailbox, dest rpc.Mailbox, msg *protocol.Message) (int32, *protocol.Message) {
+	s.LogDebug("enter region")
 	var data []byte
 	err := protocol.ParseArgs(msg, &data)
 	if err != nil {
@@ -25,8 +27,38 @@ func (s *GameScene) AddPlayer(src rpc.Mailbox, dest rpc.Mailbox, msg *protocol.M
 		return protocol.ReplyError(protocol.TINY, define.ERR_ENTER_REGION_FAILED, err.Error())
 	}
 
-	s.addPlayer(obj.(gameobject.GameObject))
+	gameobject := obj.(gameobject.GameObject)
+	gameobject.Spirit().Witness().SetOriginal(&src)
+	s.addPlayer(gameobject)
 
-	s.Core().LogDebug("add player succeed")
+	s.spirit.Core().LogDebug("add player succeed")
+	return 0, nil
+}
+
+func (s *GameScene) LeaveRegion(src rpc.Mailbox, dest rpc.Mailbox, msg *protocol.Message) (int32, *protocol.Message) {
+	s.LogDebug("leave region")
+	pl := s.findPlayerByOrigin(src)
+	if pl == nil {
+		return protocol.ReplyError(protocol.TINY, define.ERR_REGION_OBJECT_NOT_FOUND, "player not found")
+	}
+
+	data, err := s.factory.Encode(pl)
+	if err != nil {
+		panic(err)
+	}
+
+	//s.removePlayerByOrigin(src)
+
+	return protocol.Reply(protocol.DEF, s.ctx.keeptime, data)
+}
+
+func (s *GameScene) RemovePlayer(src rpc.Mailbox, dest rpc.Mailbox, msg *protocol.Message) (int32, *protocol.Message) {
+	s.LogDebug("leave region")
+	pl := s.findPlayerByOrigin(src)
+	if pl == nil {
+		return 0, nil
+	}
+	s.factory.Destroy(pl)
+	s.removePlayerByOrigin(src)
 	return 0, nil
 }
