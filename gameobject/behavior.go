@@ -41,6 +41,8 @@ type Behavior interface {
 	// SetCap 设置容量，并初始化容器
 	SetCap(cap int) error
 	// 回调
+	// OnBeforeSerialize 准备序列化
+	OnBeforeSerialize()
 	OnCreate()
 	OnDestroy()
 	OnUpdate(delta time.Duration)
@@ -231,6 +233,19 @@ func (b *BaseBehavior) RemoveComponent(name string) {
 		comp.comp.Destroy() // 销毁组件
 		delete(b.component, name)
 	}
+}
+
+// BeforeSerialize 准备序列化
+func (b *BaseBehavior) BeforeSerialize() {
+	for _, c := range b.component {
+		c.comp.BeforeSerialize()
+	}
+
+	b.gameobject.Behavior().OnBeforeSerialize()
+}
+
+func (b *BaseBehavior) OnBeforeSerialize() {
+
 }
 
 func (b *BaseBehavior) OnCreate() {

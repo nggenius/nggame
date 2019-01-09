@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/mysll/toolkit"
+	"github.com/nggenius/ngengine/utils"
 )
 
 var _ = json.Marshal
@@ -274,6 +275,35 @@ func (o *Scene) GobDecode(buf []byte) error {
 		return err
 	}
 	err = decoder.Decode(o.attr)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (o *Scene) Serialize(ar *utils.StoreArchive) error {
+	var err error
+
+	err = ar.Put(o.attr.Name) // Name
+	if err != nil {
+		return err
+	}
+	err = ar.Put(o.attr.Resource) // Resource
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (o *Scene) Deserialize(ar *utils.LoadArchive) error {
+	var err error
+
+	err = ar.Get(&o.attr.Name) // Name
+	if err != nil {
+		return err
+	}
+	err = ar.Get(&o.attr.Resource) // Resource
 	if err != nil {
 		return err
 	}

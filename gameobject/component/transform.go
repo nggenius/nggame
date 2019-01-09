@@ -3,6 +3,7 @@ package component
 import (
 	"time"
 
+	"github.com/nggenius/ngengine/utils"
 	"github.com/nggenius/nggame/gameobject"
 )
 
@@ -16,11 +17,9 @@ func NewTransform() *Transform {
 }
 
 func (t *Transform) Create() {
-	t.Core().LogDebug("transform created")
 }
 
 func (t *Transform) Destroy() {
-	t.Core().LogDebug("transform destroy")
 }
 
 func (t *Transform) Update(delta time.Duration) {
@@ -49,4 +48,14 @@ func (t *Transform) RotateAngle(xAngle, yAngle, zAngle float32) {
 
 func (t *Transform) Translate(x, y, z float32) {
 
+}
+
+// Serialize 序列化
+func (t *Transform) Serialize(ar *utils.StoreArchive) error {
+	return nil
+}
+
+// Deserialize 反序列化
+func (t *Transform) Deserialize(ar *utils.LoadArchive) error {
+	return nil
 }

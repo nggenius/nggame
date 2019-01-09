@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/mysll/toolkit"
+	"github.com/nggenius/ngengine/utils"
 )
 
 var _ = json.Marshal
@@ -906,6 +907,91 @@ func (o *Player) GobDecode(buf []byte) error {
 		return err
 	}
 	err = decoder.Decode(o.attr)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (o *Player) Serialize(ar *utils.StoreArchive) error {
+	var err error
+
+	err = ar.Put(o.archive.Name) // Name
+	if err != nil {
+		return err
+	}
+	err = ar.Put(o.archive.LandScene) // LandScene
+	if err != nil {
+		return err
+	}
+	err = ar.Put(o.archive.LandPos) // LandPos
+	if err != nil {
+		return err
+	}
+	err = ar.Put(o.archive.Toolbox) // Toolbox
+	if err != nil {
+		return err
+	}
+	err = ar.Put(o.attr.GroupId) // GroupId
+	if err != nil {
+		return err
+	}
+	err = ar.Put(o.attr.Invisible) // Invisible
+	if err != nil {
+		return err
+	}
+	err = ar.Put(o.attr.VisualRange) // VisualRange
+	if err != nil {
+		return err
+	}
+	err = ar.Put(o.archive.Pos) // Pos
+	if err != nil {
+		return err
+	}
+	err = ar.Put(o.archive.Orient) // Orient
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (o *Player) Deserialize(ar *utils.LoadArchive) error {
+	var err error
+
+	err = ar.Get(&o.archive.Name) // Name
+	if err != nil {
+		return err
+	}
+	err = ar.Get(&o.archive.LandScene) // LandScene
+	if err != nil {
+		return err
+	}
+	err = ar.Get(o.archive.LandPos) // LandPos
+	if err != nil {
+		return err
+	}
+	err = ar.Get(o.archive.Toolbox) // Toolbox
+	if err != nil {
+		return err
+	}
+	err = ar.Get(&o.attr.GroupId) // GroupId
+	if err != nil {
+		return err
+	}
+	err = ar.Get(&o.attr.Invisible) // Invisible
+	if err != nil {
+		return err
+	}
+	err = ar.Get(&o.attr.VisualRange) // VisualRange
+	if err != nil {
+		return err
+	}
+	err = ar.Get(o.archive.Pos) // Pos
+	if err != nil {
+		return err
+	}
+	err = ar.Get(&o.archive.Orient) // Orient
 	if err != nil {
 		return err
 	}

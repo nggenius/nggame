@@ -92,7 +92,7 @@ func (r *Role) CreateRole(sender, _ rpc.Mailbox, msg *protocol.Message) (errcode
 
 func (r *Role) DeleteRole(sender, _ rpc.Mailbox, msg *protocol.Message) (errcode int32, reply *protocol.Message) {
 	m := protocol.NewMessageReader(msg)
-	roleid, err := m.ReadInt64()
+	roleid, err := m.GetInt64()
 	if err != nil {
 		r.ctx.LogFatal("read roleid failed, ", err)
 		return 0, nil

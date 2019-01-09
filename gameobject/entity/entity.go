@@ -3,6 +3,7 @@ package entity
 import (
 	"github.com/nggenius/ngengine/core/rpc"
 	"github.com/nggenius/ngengine/core/service"
+	"github.com/nggenius/ngengine/utils"
 )
 
 const (
@@ -38,6 +39,8 @@ type DataObject interface {
 	AttrIndex(name string) int
 	// 设置目击者
 	SetWitness(w Witness)
+	Serialize(ar *utils.StoreArchive) error
+	Deserialize(ar *utils.LoadArchive) error
 }
 
 type Witness interface {
@@ -146,4 +149,24 @@ func (e *Entity) ObjId() rpc.Mailbox {
 // SetObjId 设置唯一ID
 func (e *Entity) SetObjId(id rpc.Mailbox) {
 	e.objid = id
+}
+
+// Serialize 序列化
+func (e *Entity) Serialize(ar *utils.StoreArchive) error {
+	err := e.d.Serialize(ar)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Deserialize 反序列化
+func (e *Entity) Deserialize(ar *utils.LoadArchive) error {
+	err := e.d.Deserialize(ar)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

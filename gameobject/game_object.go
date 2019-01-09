@@ -1,8 +1,7 @@
 package gameobject
 
 import (
-	"bytes"
-	"encoding/gob"
+	"github.com/nggenius/ngengine/utils"
 
 	"github.com/nggenius/ngengine/core/rpc"
 	"github.com/nggenius/ngengine/core/service"
@@ -33,8 +32,8 @@ type GameObject interface {
 	Spirit() *entity.Entity
 	Behavior() Behavior
 	EntityType() string
-	Serialize() ([]byte, error)
-	Deserialize([]byte) error
+	Serialize(ar *utils.StoreArchive) error
+	Deserialize(ar *utils.LoadArchive) error
 	// ObjectType 获取对象类型
 	ObjectType() string
 	// ObjId 唯一ID
@@ -119,25 +118,71 @@ func (g *BaseObject) SetDelegate(d object.Delegate) {
 	g.object.Behavior().Base().SetDelegate(d)
 }
 
-func (g *BaseObject) Serialize() ([]byte, error) {
-	d := g.object.Spirit().Data()
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	err := enc.Encode(d)
-	if err != nil {
-		return nil, err
-	}
+func (g *BaseObject) Serialize(ar *utils.StoreArchive) error {
+	g.object.Behavior().Base().BeforeSerialize()
 
-	return buf.Bytes(), nil
-}
-
-func (g *BaseObject) Deserialize(b []byte) error {
-	d := g.object.Spirit().Data()
-	buf := bytes.NewBuffer(b)
-	dec := gob.NewDecoder(buf)
-	err := dec.Decode(d)
+	// 序列化自身数据
+	err := g.object.Spirit().Serialize(ar)
 	if err != nil {
 		return err
+	}
+
+	// 序列化组件
+	pos := ar.Len() // 占位符
+	comps := g.object.Behavior().Base().component
+	ar.Put(int16(0))
+	var count int16
+	for k, c := range comps {
+		if c.comp.Replication() {
+			ar.PutString(k)
+			cbegin := ar.Len() // 组件开始位置，记录组件数据长度，以便组件不存在时可以跳过
+			ar.Put(int16(0))
+			if err := c.comp.Serialize(ar); err != nil {
+				return err
+			}
+			l := int16(ar.Len() - cbegin - 2)
+			if l < 0 {
+				panic("size exceed")
+			}
+
+			ar.WriteAt(cbegin, int16(ar.Len()-cbegin)-2)
+			count++
+		}
+	}
+	err = ar.WriteAt(pos, count)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (g *BaseObject) Deserialize(ar *utils.LoadArchive) error {
+	err := g.object.Spirit().Deserialize(ar)
+	if err != nil {
+		return err
+	}
+	count, err := ar.GetUint16()
+	if err != nil {
+		return err
+	}
+	for i := 0; i < int(count); i++ {
+		cname, err := ar.GetString()
+		if err != nil {
+			return err
+		}
+		len, err := ar.GetInt16()
+		if err != nil {
+			return err
+		}
+		comp := g.object.Behavior().GetComponent(cname)
+		if comp == nil {
+			ar.Seek(ar.Position()+int(len), 0)
+			continue
+		}
+		err = comp.Deserialize(ar)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

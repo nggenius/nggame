@@ -10,6 +10,7 @@ import(
     "fmt"
 
     "github.com/mysll/toolkit"
+	"github.com/nggenius/ngengine/utils"
 )
 
 var _ = json.Marshal
@@ -591,6 +592,27 @@ func (o *{{$.Name}}) GobDecode(buf []byte) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (o *{{$.Name}}) Serialize(ar *utils.StoreArchive) error {
+	var err error
+	{{range .Property}}	
+	err = ar.Put({{if eq .Save "true"}}o.archive.{{.Name}} {{else}}o.attr.{{.Name}} {{end}} )	// {{.Name}}
+	if err != nil {
+		return err
+	} {{end}}
+
+	return nil
+}
+
+func (o *{{$.Name}}) Deserialize(ar *utils.LoadArchive) error {
+	var err error
+	{{range .Property}}	
+	err = ar.Get({{if and (ne .Type "tuple") (ne .Type "table")}} & {{end}} {{if eq .Save "true"}}o.archive.{{.Name}} {{else}}o.attr.{{.Name}} {{end}} )	// {{.Name}}
+	if err != nil {
+		return err
+	} {{end}}
 	return nil
 }
 

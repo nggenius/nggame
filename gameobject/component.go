@@ -6,6 +6,7 @@ import (
 	"github.com/nggenius/nggame/gameobject/entity"
 
 	"github.com/nggenius/ngengine/core/service"
+	"github.com/nggenius/ngengine/utils"
 )
 
 type ComponentInfo struct {
@@ -23,11 +24,17 @@ type Component interface {
 	Destroy()
 	Enable() bool
 	SetEnable(e bool)
+	BeforeSerialize()
+	Serialize(ar *utils.StoreArchive) error
+	Deserialize(ar *utils.LoadArchive) error
+	Replication() bool
+	SetReplication(v bool)
 }
 
 type GameComponent struct {
-	gameobject GameObject
-	enable     bool
+	gameobject  GameObject
+	enable      bool
+	replication bool
 }
 
 // SetGameObject 设置当前附加的对象，由GameObject调用
@@ -77,5 +84,30 @@ func (g *GameComponent) Update(delta time.Duration) {
 
 // Destroy 组件被销毁
 func (g *GameComponent) Destroy() {
+
+}
+
+// Replicate 是否复制
+func (g *GameComponent) Replication() bool {
+	return g.replication
+}
+
+// SetReplicate set replicate
+func (g *GameComponent) SetReplication(v bool) {
+	g.replication = v
+}
+
+// Serialize 序列化
+func (g *GameComponent) Serialize(ar *utils.StoreArchive) error {
+	return nil
+}
+
+// Deserialize 反序列化
+func (g *GameComponent) Deserialize(ar *utils.LoadArchive) error {
+	return nil
+}
+
+// BeforeSerialize 准备序列化
+func (g *GameComponent) BeforeSerialize() {
 
 }

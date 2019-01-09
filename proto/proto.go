@@ -40,7 +40,7 @@ func (j *JsonProto) DecodeRpcMessage(msg *protocol.Message) (node, Servicemethod
 
 func (j *JsonProto) DecodeMessage(msg *protocol.Message, out interface{}) error {
 	r := utils.NewLoadArchiver(msg.Body)
-	data, err := r.ReadData()
+	data, err := r.GetData()
 	if err != nil {
 		return err
 	}
