@@ -29,10 +29,15 @@ func GameObjectEqual(l GameObject, r GameObject) bool {
 }
 
 type GameObject interface {
+	// Spirit 数据对象
 	Spirit() *entity.Entity
+	// Behavior 行为对象
 	Behavior() Behavior
+	// EntityType 数据对象类型
 	EntityType() string
+	// Serialize 序列化接口
 	Serialize(ar *utils.StoreArchive) error
+	// Deserialize 反序列化接口
 	Deserialize(ar *utils.LoadArchive) error
 	// ObjectType 获取对象类型
 	ObjectType() string
